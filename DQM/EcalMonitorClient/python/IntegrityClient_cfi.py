@@ -16,6 +16,9 @@ ecalIntegrityClient = cms.untracked.PSet(
         GainSwitch = ecalIntegrityTask.MEs.GainSwitch,
         ChId = ecalIntegrityTask.MEs.ChId,
         TowerId = ecalIntegrityTask.MEs.TowerId,
+        # TTF:
+        TTFlags4 = ecalIntegrityTask.MEs.TTFlags4,
+        TTMaskMapAll = ecalIntegrityTask.MEs.TTMaskMapAll
     ),
     MEs = cms.untracked.PSet(
         QualitySummary = cms.untracked.PSet(
@@ -31,6 +34,14 @@ ecalIntegrityClient = cms.untracked.PSet(
             otype = cms.untracked.string('SM'),
             btype = cms.untracked.string('Crystal'),
             description = cms.untracked.string('Summary of the data integrity. A channel is red if more than ' + str(errFractionThreshold) + ' of its entries have integrity errors.')            
+        ),
+        # TTF:
+        TTF4vMask = cms.untracked.PSet(
+            path = cms.untracked.string('%(subdet)s/%(prefix)sTriggerTowerTask/%(prefix)sTTT TTF4 vs Masking Status%(suffix)s'),
+            kind = cms.untracked.string('TH2F'),
+            otype = cms.untracked.string('Ecal3P'),
+            btype = cms.untracked.string('TriggerTower'),
+            description = cms.untracked.string('Summarizes whether a TT was masked in the TPGRecords, or had an instance of TT Flag=4.<br/>GRAY: Masked, no TTF4,<br/>BLACK: Masked, with TTF4,<br/>BLUE: Not Masked, with TTF4.')
         )
     )
 )

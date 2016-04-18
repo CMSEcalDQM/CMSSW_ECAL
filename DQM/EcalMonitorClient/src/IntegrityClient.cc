@@ -4,6 +4,8 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "DQM/EcalCommon/interface/EcalDQMCommonUtils.h"
+
 namespace ecaldqm
 {
   IntegrityClient::IntegrityClient() :
@@ -75,7 +77,36 @@ namespace ecaldqm
         meQualitySummary.setBinContent(id, doMask ? kMGood : kGood);
       }
     }
-  }
+
+    // ========== TTF plots requested by ETT  ========== //
+    // Lifted from TrigPrimClient:
+    // Too costly to run whole TrigPrimClient sequence so include TTF plots here instead
+
+    // Fill TTF4 v Masking ME
+    // NOT an occupancy plot: only tells you if non-zero TTF4 occupancy was seen
+    // without giving info about how many were seen
+    MESet& meTTF4vMask(MEs_.at("TTF4vMask"));
+    MESet const& sTTFlags4(sources_.at("TTFlags4"));
+    MESet const& sTTMaskMapAll(sources_.at("TTMaskMapAll"));
+
+    // Loop over all TTs
+    for(unsigned iTT(0); iTT < EcalTrigTowerDetId::kSizeForDenseIndexing; iTT++) {
+      EcalTrigTowerDetId ttid(EcalTrigTowerDetId::detIdFromDenseIndex(iTT));
+      bool isMasked( sTTMaskMapAll.getBinContent(ttid) > 0. );
+      bool hasTTF4( sTTFlags4.getBinContent(ttid) > 0. );
+      if ( isMasked ) { 
+        if ( hasTTF4 )
+          meTTF4vMask.setBinContent( ttid,12 ); // Masked, has TTF4
+        else
+          meTTF4vMask.setBinContent( ttid,11 ); // Masked, no TTF4
+      } else {
+        if ( hasTTF4 )
+          meTTF4vMask.setBinContent( ttid,13 ); // not Masked, has TTF4
+      }   
+    } // TT loop
+    // ==================== // 
+
+  } // producePlots()
 
   DEFINE_ECALDQM_WORKER(IntegrityClient);
 }
