@@ -29,11 +29,10 @@ namespace ecaldqm
     void bookMEs(DQMStore::IBooker&) override;
     void releaseMEs() override;
 
-    // Following three functions are not virtual as there should be no task dependence in action
     void releaseSource();
     bool retrieveSource(DQMStore::IGetter&, ProcessType);
-    bool runsOn(ProcessType _type) const { return _type == kJob || hasLumiPlots_; }
 
+    bool runsOn(ProcessType _type) const { return _type == kJob || hasLumiPlots_; }
     virtual void resetMEs();
     virtual void producePlots(ProcessType) = 0;
 
@@ -49,7 +48,7 @@ namespace ecaldqm
     };
 
   protected:
-    void setME(edm::ParameterSet const& _ps) final { DQWorker::setME(_ps); }
+    void setME(edm::ParameterSet const& _ps) final;
     void setSource(edm::ParameterSet const&) override;
 
     bool using_(std::string const& _name, ProcessType _type = kJob) const
