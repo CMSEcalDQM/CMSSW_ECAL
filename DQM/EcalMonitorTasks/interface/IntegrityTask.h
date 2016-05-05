@@ -8,6 +8,12 @@
 #include "DataFormats/DetId/interface/DetIdCollection.h"
 #include "DataFormats/EcalDetId/interface/EcalDetIdCollections.h"
 
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
+#include "DataFormats/EcalDigi/interface/EcalTriggerPrimitiveDigi.h"
+#include "CondFormats/EcalObjects/interface/EcalTPGTowerStatus.h"
+#include "CondFormats/EcalObjects/interface/EcalTPGStripStatus.h"
+
 namespace ecaldqm
 {
 
@@ -22,6 +28,16 @@ namespace ecaldqm
 
     template<class C> void runOnDetIdCollection(C const&, Collections);
     void runOnElectronicsIdCollection(EcalElectronicsIdCollection const&, Collections);
+
+    // TTF:
+    void beginRun(edm::Run const&, edm::EventSetup const&) override;
+    void runOnRealTPs(EcalTrigPrimDigiCollection const&);
+  //};
+
+  // TTF:
+  private:
+    edm::ESHandle<EcalTPGTowerStatus> TTStatusRcd;
+    edm::ESHandle<EcalTPGStripStatus> StripStatusRcd;
   };
 
   inline bool IntegrityTask::analyze(void const* _p, Collections _collection){
@@ -40,6 +56,11 @@ namespace ecaldqm
     case kTowerIdErrors:
     case kBlockSizeErrors:
       if(_p) runOnElectronicsIdCollection(*static_cast<EcalElectronicsIdCollection const*>(_p), _collection);
+      return true;
+      break;
+    // TTF:
+    case kTrigPrimDigi:
+      if(_p) runOnRealTPs(*static_cast<EcalTrigPrimDigiCollection const*>(_p));
       return true;
       break;
     default:

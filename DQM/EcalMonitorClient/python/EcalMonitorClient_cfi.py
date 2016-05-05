@@ -19,6 +19,7 @@ ecalMonitorClient = cms.EDAnalyzer("EcalDQMonitorClient",
         "OccupancyClient",
         "PresampleClient",
         "RawDataClient",
+        "TimingClient",
         "TrigPrimClient",
         "SummaryClient"
     ),
