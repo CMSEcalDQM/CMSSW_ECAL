@@ -15,7 +15,7 @@ namespace ecaldqm
     DQWorkerTask()
   {
   }
-
+/*
  // ========== TTF plots requested by ETT  ========== //
  // Lifted from TrigPrimTask:
  // Too costly to run whole TrigPrimTask sequence so include TTF plots here instead
@@ -77,7 +77,7 @@ namespace ecaldqm
 
   } // runOnRealTPs
  // ==================== //
-
+*/
   void
   IntegrityTask::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
   {

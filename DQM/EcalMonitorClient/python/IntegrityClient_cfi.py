@@ -16,9 +16,9 @@ ecalIntegrityClient = cms.untracked.PSet(
         GainSwitch = ecalIntegrityTask.MEs.GainSwitch,
         ChId = ecalIntegrityTask.MEs.ChId,
         TowerId = ecalIntegrityTask.MEs.TowerId,
-        # TTF:
-        TTFlags4 = ecalIntegrityTask.MEs.TTFlags4,
-        TTMaskMapAll = ecalIntegrityTask.MEs.TTMaskMapAll
+#        # TTF:
+#        TTFlags4 = ecalIntegrityTask.MEs.TTFlags4,
+#        TTMaskMapAll = ecalIntegrityTask.MEs.TTMaskMapAll
     ),
     MEs = cms.untracked.PSet(
         QualitySummary = cms.untracked.PSet(
