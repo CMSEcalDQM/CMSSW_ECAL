@@ -30,14 +30,14 @@ namespace ecaldqm
     void runOnElectronicsIdCollection(EcalElectronicsIdCollection const&, Collections);
 
     // TTF:
-    void beginRun(edm::Run const&, edm::EventSetup const&) override;
-    void runOnRealTPs(EcalTrigPrimDigiCollection const&);
+    //void beginRun(edm::Run const&, edm::EventSetup const&) override;
+    //void runOnRealTPs(EcalTrigPrimDigiCollection const&);
   //};
 
   // TTF:
-  private:
-    edm::ESHandle<EcalTPGTowerStatus> TTStatusRcd;
-    edm::ESHandle<EcalTPGStripStatus> StripStatusRcd;
+  //private:
+    //edm::ESHandle<EcalTPGTowerStatus> TTStatusRcd;
+    //edm::ESHandle<EcalTPGStripStatus> StripStatusRcd;
   };
 
   inline bool IntegrityTask::analyze(void const* _p, Collections _collection){
@@ -59,10 +59,10 @@ namespace ecaldqm
       return true;
       break;
     // TTF:
-    case kTrigPrimDigi:
-      if(_p) runOnRealTPs(*static_cast<EcalTrigPrimDigiCollection const*>(_p));
-      return true;
-      break;
+//    case kTrigPrimDigi:
+//      if(_p) runOnRealTPs(*static_cast<EcalTrigPrimDigiCollection const*>(_p));
+//      return true;
+//      break;
     default:
       break;
     }

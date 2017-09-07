@@ -77,7 +77,7 @@ namespace ecaldqm
         meQualitySummary.setBinContent(id, doMask ? kMGood : kGood);
       }
     }
-
+/*
     // ========== TTF plots requested by ETT  ========== //
     // Lifted from TrigPrimClient:
     // Too costly to run whole TrigPrimClient sequence so include TTF plots here instead
@@ -105,7 +105,7 @@ namespace ecaldqm
       }   
     } // TT loop
     // ==================== // 
-
+*/
   } // producePlots()
 
   DEFINE_ECALDQM_WORKER(IntegrityClient);
