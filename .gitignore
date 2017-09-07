@@ -1,2 +1,6 @@
 # binaries
 *.pyc
+
+# emacs backups
+[#]*[#]
+*~
