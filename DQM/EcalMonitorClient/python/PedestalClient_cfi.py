@@ -7,7 +7,7 @@ from DQM.EcalMonitorTasks.PedestalTask_cfi import ecalPedestalTask
 minChannelEntries = 3
 expectedMean = 200.
 toleranceMean = 25.
-toleranceRMSEB = [1., 1.2, 2.] # [G1, G6, G12]
+toleranceRMSEB = [1., 1.2, 2.5] # [G1, G6, G12]
 toleranceRMSEE = [1., 1.5, 3.] # [G1, G6, G12]
 expectedPNMean = 750.
 tolerancePNMean = 100.
