@@ -7,6 +7,7 @@
 
 #include "DataFormats/EcalDetId/interface/EcalDetIdCollections.h"
 #include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
+#include "FWCore/Utilities/interface/Exception.h"
 
 namespace ecaldqm {
 
@@ -17,10 +18,14 @@ namespace ecaldqm {
 
     bool filterRunType(short const*) override;
 
+    void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
+
     bool analyze(void const*, Collections) override;
 
     void runOnErrors(EcalElectronicsIdCollection const&, Collections);
     void runOnPnDigis(EcalPnDiodeDigiCollection const&);
+
+    int InvalidDetIDWarningsLumi_ = 0;
 
   protected:
     bool enable_[ecaldqm::nDCC];
