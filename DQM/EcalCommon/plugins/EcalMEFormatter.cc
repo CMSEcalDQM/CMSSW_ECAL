@@ -2,9 +2,8 @@
 
 #include "DQM/EcalCommon/interface/MESetDet2D.h"
 
-#include "FWCore/ServiceRegistry/interface/Service.h"
 #include "DQMServices/Core/interface/DQMStore.h"
-#include "DQMServices/Core/interface/MonitorElement.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
 
 #include "FWCore/Framework/interface/MakerMacros.h"
 
@@ -63,7 +62,7 @@ EcalMEFormatter::format_(DQMStore::IGetter& _igetter, bool _checkLumi)
 void
 EcalMEFormatter::formatDet2D_(ecaldqm::MESet& _meSet)
 {
-  if(_meSet.getKind() != MonitorElement::DQM_KIND_TPROFILE2D) return;
+  if(_meSet.getKind() != MonitorElement::Kind::TPROFILE2D) return;
 
   MonitorElement* me(0);
   unsigned iME(0);

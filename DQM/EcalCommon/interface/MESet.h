@@ -3,7 +3,6 @@
 
 #include "DQM/EcalCommon/interface/MESetBinningUtils.h"
 
-#include "DQMServices/Core/interface/MonitorElement.h"
 #include "DQMServices/Core/interface/DQMStore.h"
 
 #include "DataFormats/DetId/interface/DetId.h"
@@ -28,6 +27,8 @@ namespace ecaldqm
 
   class MESet {
   public:
+    typedef dqm::legacy::DQMStore DQMStore;
+    typedef dqm::legacy::MonitorElement MonitorElement;
     typedef std::map<std::string, std::string> PathReplacements;
 
     MESet();
@@ -97,8 +98,6 @@ namespace ecaldqm
     virtual bool isVariableBinning() const { return false; }
     virtual MonitorElement const* getME(unsigned _iME) const { return (_iME < mes_.size() ? mes_[_iME] : 0); }
     virtual MonitorElement* getME(unsigned _iME) { return (_iME < mes_.size() ? mes_[_iME] : 0); }
-    virtual void softReset();
-    virtual void recoverStats();
 
     std::string formPath(PathReplacements const&) const;
 

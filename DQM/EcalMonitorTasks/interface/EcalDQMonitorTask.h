@@ -2,7 +2,7 @@
 #define EcalDQMonitorTask_H
 
 #include "DQM/EcalCommon/interface/EcalDQMonitor.h"
-#include "DQMServices/Core/interface/DQMEDAnalyzer.h"
+#include "DQMServices/Core/interface/DQMOneEDAnalyzer.h"
 
 #include "DQWorkerTask.h"
 #include "Collections.h"
@@ -16,7 +16,7 @@ namespace edm
   class ParameterSetDescription;
 }
 
-class EcalDQMonitorTask : public DQMEDAnalyzer, public ecaldqm::EcalDQMonitor {
+class EcalDQMonitorTask : public DQMOneLumiEDAnalyzer<>, public ecaldqm::EcalDQMonitor {
  public:
   EcalDQMonitorTask(edm::ParameterSet const&);
   ~EcalDQMonitorTask() {}
@@ -27,9 +27,9 @@ class EcalDQMonitorTask : public DQMEDAnalyzer, public ecaldqm::EcalDQMonitor {
   void dqmBeginRun(edm::Run const&, edm::EventSetup const&) override;
 
  private:
-  void endRun(edm::Run const&, edm::EventSetup const&) override;
-  void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
-  void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
+  void dqmEndRun(edm::Run const&, edm::EventSetup const&) override;
+  void dqmBeginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
+  void dqmEndLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
   void analyze(edm::Event const&, edm::EventSetup const&) override;
   
   typedef void (EcalDQMonitorTask::*Processor)(edm::Event const&, ecaldqm::Collections, std::set<ecaldqm::DQWorker*> const&);

@@ -147,7 +147,7 @@ namespace ecaldqm
         if(multi){
           for(unsigned iS(0); iS < multi->getMultiplicity(); ++iS){
             multi->use(iS);
-            if(multi->getKind() == MonitorElement::DQM_KIND_TH2F){
+            if(multi->getKind() == MonitorElement::Kind::TH2F){
               multi->resetAll(-1.);
               multi->reset(kUnknown);
             }
@@ -156,7 +156,7 @@ namespace ecaldqm
           }
         }
         else{
-          if(meset->getKind() == MonitorElement::DQM_KIND_TH2F){
+          if(meset->getKind() == MonitorElement::Kind::TH2F){
             meset->resetAll(-1.);
             meset->reset(kUnknown);
           }

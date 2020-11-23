@@ -11,10 +11,10 @@ namespace ecaldqm {
     currentBin_(-1)
   {
     switch(kind_){
-    case MonitorElement::DQM_KIND_TH1F:
-    case MonitorElement::DQM_KIND_TH2F:
-    case MonitorElement::DQM_KIND_TPROFILE:
-    case MonitorElement::DQM_KIND_TPROFILE2D:
+    case MonitorElement::Kind::TH1F:
+    case MonitorElement::Kind::TH2F:
+    case MonitorElement::Kind::TPROFILE:
+    case MonitorElement::Kind::TPROFILE2D:
       break;
     default:
       throw_("Unsupported MonitorElement kind");
@@ -183,7 +183,7 @@ namespace ecaldqm {
   void
   MESetTrend::setCumulative()
   {
-    if(kind_ == MonitorElement::DQM_KIND_TPROFILE || kind_ == MonitorElement::DQM_KIND_TPROFILE2D)
+    if(kind_ == MonitorElement::Kind::TPROFILE || kind_ == MonitorElement::Kind::TPROFILE2D)
       throw_("Cumulative flag set for a profile plot");
     currentBin_ = 1;
   }
@@ -241,13 +241,13 @@ namespace ecaldqm {
 	int iMax(nbinsX + 1);
 	while(--iMax > 0 && !filled){
 	  switch(kind_){
-	  case  MonitorElement::DQM_KIND_TH1F:
+	  case  MonitorElement::Kind::TH1F:
 	    if(me->getBinContent(iMax) != 0) filled = true;
 	    break;
-	  case MonitorElement::DQM_KIND_TPROFILE:
+	  case MonitorElement::Kind::TPROFILE:
 	    if(me->getBinEntries(iMax) != 0) filled = true;
 	    break;
-	  case MonitorElement::DQM_KIND_TH2F:
+	  case MonitorElement::Kind::TH2F:
 	    for(int iy(1); iy <= me->getNbinsY(); iy++){
 	      if(me->getBinContent(me->getTH1()->GetBin(iMax, iy)) != 0){
                 filled = true;
@@ -255,7 +255,7 @@ namespace ecaldqm {
               }
             }
 	    break;
-	  case MonitorElement::DQM_KIND_TPROFILE2D:
+	  case MonitorElement::Kind::TPROFILE2D:
 	    for(int iy(1); iy <= me->getNbinsY(); iy++){
 	      if(me->getBinEntries(me->getTH1()->GetBin(iMax, iy)) != 0){
                 filled = true;
@@ -297,7 +297,7 @@ namespace ecaldqm {
       double entries(0.);
 
       switch(kind_){
-      case MonitorElement::DQM_KIND_TH1F:
+      case MonitorElement::Kind::TH1F:
         {
           int ix(start);
           for(; ix != end; ix += step){
@@ -315,7 +315,7 @@ namespace ecaldqm {
           }
         }
         break;
-      case MonitorElement::DQM_KIND_TPROFILE:
+      case MonitorElement::Kind::TPROFILE:
         {
           int ix(start);
           for(; ix != end; ix += step){
@@ -340,7 +340,7 @@ namespace ecaldqm {
           }
         }
         break;
-      case MonitorElement::DQM_KIND_TH2F:
+      case MonitorElement::Kind::TH2F:
         {
           int ix(start);
           int nbinsY(me->getNbinsY());
@@ -373,7 +373,7 @@ namespace ecaldqm {
           }
         }
         break;
-      case MonitorElement::DQM_KIND_TPROFILE2D:
+      case MonitorElement::Kind::TPROFILE2D:
         {
           int ix(start);
           int nbinsY(me->getNbinsY());

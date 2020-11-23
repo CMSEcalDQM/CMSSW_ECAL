@@ -9,10 +9,10 @@ namespace ecaldqm
     MESetEcal(_fullPath, _otype, _btype, _kind, 1, 0, _yaxis, 0)
   {
     switch(kind_){
-    case MonitorElement::DQM_KIND_TH1F:
-    case MonitorElement::DQM_KIND_TPROFILE:
-    case MonitorElement::DQM_KIND_TH2F:
-    case MonitorElement::DQM_KIND_TPROFILE2D:
+    case MonitorElement::Kind::TH1F:
+    case MonitorElement::Kind::TPROFILE:
+    case MonitorElement::Kind::TH2F:
+    case MonitorElement::Kind::TPROFILE2D:
       break;
     default:
       throw_("Unsupported MonitorElement kind");
@@ -117,7 +117,7 @@ namespace ecaldqm
     binning::ObjectType obj(binning::getObject(otype_, iME));
     int xbin(binning::findBin1D(obj, btype_, _id));
 
-    if(kind_ == MonitorElement::DQM_KIND_TH2F || kind_ == MonitorElement::DQM_KIND_TPROFILE2D)
+    if(kind_ == MonitorElement::Kind::TH2F || kind_ == MonitorElement::Kind::TPROFILE2D)
       fill_(iME, xbin, _wy, _w);
     else
       fill_(iME, xbin, _wy);
@@ -134,7 +134,7 @@ namespace ecaldqm
     binning::ObjectType obj(binning::getObject(otype_, iME));
     int xbin(binning::findBin1D(obj, btype_, _id));
 
-    if(kind_ == MonitorElement::DQM_KIND_TH2F || kind_ == MonitorElement::DQM_KIND_TPROFILE2D)
+    if(kind_ == MonitorElement::Kind::TH2F || kind_ == MonitorElement::Kind::TPROFILE2D)
       fill_(iME, xbin, _wy, _w);
     else
       fill_(iME, xbin, _wy);
@@ -151,7 +151,7 @@ namespace ecaldqm
     binning::ObjectType obj(binning::getObject(otype_, iME));
     int xbin(binning::findBin1D(obj, btype_, _dcctccid));
 
-    if(kind_ == MonitorElement::DQM_KIND_TH2F || kind_ == MonitorElement::DQM_KIND_TPROFILE2D)
+    if(kind_ == MonitorElement::Kind::TH2F || kind_ == MonitorElement::Kind::TPROFILE2D)
       fill_(iME, xbin, _wy, _w);
     else
       fill_(iME, xbin, _wy);
@@ -170,7 +170,7 @@ namespace ecaldqm
     binning::ObjectType obj(binning::getObject(otype_, iME));
     int xbin(binning::findBin1D(obj, btype_, _id));
 
-    if(kind_ == MonitorElement::DQM_KIND_TH2F || kind_ == MonitorElement::DQM_KIND_TPROFILE2D){
+    if(kind_ == MonitorElement::Kind::TH2F || kind_ == MonitorElement::Kind::TPROFILE2D){
       int nbinsY(me->getTH1()->GetNbinsY());
       for(int iY(1); iY <= nbinsY; iY++)
         me->setBinContent(xbin, iY, _content);
@@ -192,7 +192,7 @@ namespace ecaldqm
     binning::ObjectType obj(binning::getObject(otype_, iME));
     int xbin(binning::findBin1D(obj, btype_, _id));
 
-    if(kind_ == MonitorElement::DQM_KIND_TH2F || kind_ == MonitorElement::DQM_KIND_TPROFILE2D){
+    if(kind_ == MonitorElement::Kind::TH2F || kind_ == MonitorElement::Kind::TPROFILE2D){
       int nbinsY(me->getTH1()->GetNbinsY());
       for(int iY(1); iY <= nbinsY; iY++)
         me->setBinContent(xbin, iY, _content);
@@ -214,7 +214,7 @@ namespace ecaldqm
     binning::ObjectType obj(binning::getObject(otype_, iME));
     int xbin(binning::findBin1D(obj, btype_, _dcctccid));
 
-    if(kind_ == MonitorElement::DQM_KIND_TH2F || kind_ == MonitorElement::DQM_KIND_TPROFILE2D){
+    if(kind_ == MonitorElement::Kind::TH2F || kind_ == MonitorElement::Kind::TPROFILE2D){
       int nbinsY(me->getTH1()->GetNbinsY());
       for(int iY(1); iY <= nbinsY; iY++)
         me->setBinContent(xbin, iY, _content);
@@ -227,7 +227,7 @@ namespace ecaldqm
   MESetDet1D::setBinContent(DetId const& _id, int _ybin, double _content)
   {
     if(!active_) return;
-    if(kind_ != MonitorElement::DQM_KIND_TH2F && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return;
+    if(kind_ != MonitorElement::Kind::TH2F && kind_ != MonitorElement::Kind::TPROFILE2D) return;
 
     unsigned iME(binning::findPlotIndex(otype_, _id));
     checkME_(iME);
@@ -243,7 +243,7 @@ namespace ecaldqm
   MESetDet1D::setBinContent(EcalElectronicsId const& _id, int _ybin, double _content)
   {
     if(!active_) return;
-    if(kind_ != MonitorElement::DQM_KIND_TH2F && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return;
+    if(kind_ != MonitorElement::Kind::TH2F && kind_ != MonitorElement::Kind::TPROFILE2D) return;
 
     unsigned iME(binning::findPlotIndex(otype_, _id));
     checkME_(iME);
@@ -259,7 +259,7 @@ namespace ecaldqm
   MESetDet1D::setBinContent(int _dcctccid, int _ybin, double _content)
   {
     if(!active_) return;
-    if(kind_ != MonitorElement::DQM_KIND_TH2F && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return;
+    if(kind_ != MonitorElement::Kind::TH2F && kind_ != MonitorElement::Kind::TPROFILE2D) return;
 
     unsigned iME(binning::findPlotIndex(otype_, _dcctccid));
     checkME_(iME);
@@ -284,7 +284,7 @@ namespace ecaldqm
     binning::ObjectType obj(binning::getObject(otype_, iME));
     int xbin(binning::findBin1D(obj, btype_, _id));
 
-    if(kind_ == MonitorElement::DQM_KIND_TH2F || kind_ == MonitorElement::DQM_KIND_TPROFILE2D){
+    if(kind_ == MonitorElement::Kind::TH2F || kind_ == MonitorElement::Kind::TPROFILE2D){
       int nbinsY(me->getTH1()->GetNbinsY());
       for(int iY(1); iY <= nbinsY; iY++)
         me->setBinError(xbin, iY, _error);
@@ -306,7 +306,7 @@ namespace ecaldqm
     binning::ObjectType obj(binning::getObject(otype_, iME));
     int xbin(binning::findBin1D(obj, btype_, _id));
 
-    if(kind_ == MonitorElement::DQM_KIND_TH2F || kind_ == MonitorElement::DQM_KIND_TPROFILE2D){
+    if(kind_ == MonitorElement::Kind::TH2F || kind_ == MonitorElement::Kind::TPROFILE2D){
       int nbinsY(me->getTH1()->GetNbinsY());
       for(int iY(1); iY <= nbinsY; iY++)
         me->setBinError(xbin, iY, _error);
@@ -328,7 +328,7 @@ namespace ecaldqm
     binning::ObjectType obj(binning::getObject(otype_, iME));
     int xbin(binning::findBin1D(obj, btype_, _dcctccid));
 
-    if(kind_ == MonitorElement::DQM_KIND_TH2F || kind_ == MonitorElement::DQM_KIND_TPROFILE2D){
+    if(kind_ == MonitorElement::Kind::TH2F || kind_ == MonitorElement::Kind::TPROFILE2D){
       int nbinsY(me->getTH1()->GetNbinsY());
       for(int iY(1); iY <= nbinsY; iY++)
         me->setBinError(xbin, iY, _error);
@@ -341,7 +341,7 @@ namespace ecaldqm
   MESetDet1D::setBinError(DetId const& _id, int _ybin, double _error)
   {
     if(!active_) return;
-    if(kind_ != MonitorElement::DQM_KIND_TH2F && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return;
+    if(kind_ != MonitorElement::Kind::TH2F && kind_ != MonitorElement::Kind::TPROFILE2D) return;
 
     unsigned iME(binning::findPlotIndex(otype_, _id));
     checkME_(iME);
@@ -357,7 +357,7 @@ namespace ecaldqm
   MESetDet1D::setBinError(EcalElectronicsId const& _id, int _ybin, double _error)
   {
     if(!active_) return;
-    if(kind_ != MonitorElement::DQM_KIND_TH2F && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return;
+    if(kind_ != MonitorElement::Kind::TH2F && kind_ != MonitorElement::Kind::TPROFILE2D) return;
 
     unsigned iME(binning::findPlotIndex(otype_, _id));
     checkME_(iME);
@@ -373,7 +373,7 @@ namespace ecaldqm
   MESetDet1D::setBinError(int _dcctccid, int _ybin, double _error)
   {
     if(!active_) return;
-    if(kind_ != MonitorElement::DQM_KIND_TH2F && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return;
+    if(kind_ != MonitorElement::Kind::TH2F && kind_ != MonitorElement::Kind::TPROFILE2D) return;
 
     unsigned iME(binning::findPlotIndex(otype_, _dcctccid));
     checkME_(iME);
@@ -389,7 +389,7 @@ namespace ecaldqm
   MESetDet1D::setBinEntries(DetId const& _id, double _entries)
   {
     if(!active_) return;
-    if(kind_ != MonitorElement::DQM_KIND_TPROFILE && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return;
+    if(kind_ != MonitorElement::Kind::TPROFILE && kind_ != MonitorElement::Kind::TPROFILE2D) return;
 
     unsigned iME(binning::findPlotIndex(otype_, _id));
     checkME_(iME);
@@ -399,7 +399,7 @@ namespace ecaldqm
     binning::ObjectType obj(binning::getObject(otype_, iME));
     int xbin(binning::findBin1D(obj, btype_, _id));
 
-    if(kind_ == MonitorElement::DQM_KIND_TPROFILE2D){
+    if(kind_ == MonitorElement::Kind::TPROFILE2D){
       int nbinsX(me->getTH1()->GetNbinsX());
       int nbinsY(me->getTH1()->GetNbinsY());
       for(int iY(1); iY <= nbinsY; iY++)
@@ -413,7 +413,7 @@ namespace ecaldqm
   MESetDet1D::setBinEntries(EcalElectronicsId const& _id, double _entries)
   {
     if(!active_) return;
-    if(kind_ != MonitorElement::DQM_KIND_TPROFILE && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return;
+    if(kind_ != MonitorElement::Kind::TPROFILE && kind_ != MonitorElement::Kind::TPROFILE2D) return;
 
     unsigned iME(binning::findPlotIndex(otype_, _id));
     checkME_(iME);
@@ -423,7 +423,7 @@ namespace ecaldqm
     binning::ObjectType obj(binning::getObject(otype_, iME));
     int xbin(binning::findBin1D(obj, btype_, _id));
 
-    if(kind_ == MonitorElement::DQM_KIND_TPROFILE2D){
+    if(kind_ == MonitorElement::Kind::TPROFILE2D){
       int nbinsX(me->getTH1()->GetNbinsX());
       int nbinsY(me->getTH1()->GetNbinsY());
       for(int iY(1); iY <= nbinsY; iY++)
@@ -437,7 +437,7 @@ namespace ecaldqm
   MESetDet1D::setBinEntries(int _dcctccid, double _entries)
   {
     if(!active_) return;
-    if(kind_ != MonitorElement::DQM_KIND_TPROFILE && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return;
+    if(kind_ != MonitorElement::Kind::TPROFILE && kind_ != MonitorElement::Kind::TPROFILE2D) return;
 
     unsigned iME(binning::findPlotIndex(otype_, _dcctccid, btype_));
     checkME_(iME);
@@ -447,7 +447,7 @@ namespace ecaldqm
     binning::ObjectType obj(binning::getObject(otype_, iME));
     int xbin(binning::findBin1D(obj, btype_, _dcctccid));
 
-    if(kind_ == MonitorElement::DQM_KIND_TPROFILE2D){
+    if(kind_ == MonitorElement::Kind::TPROFILE2D){
       int nbinsX(me->getTH1()->GetNbinsX());
       int nbinsY(me->getTH1()->GetNbinsY());
       for(int iY(1); iY <= nbinsY; iY++)
@@ -461,7 +461,7 @@ namespace ecaldqm
   MESetDet1D::setBinEntries(DetId const& _id, int _ybin, double _entries)
   {
     if(!active_) return;
-    if(kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return;
+    if(kind_ != MonitorElement::Kind::TPROFILE2D) return;
 
     unsigned iME(binning::findPlotIndex(otype_, _id));
     checkME_(iME);
@@ -478,7 +478,7 @@ namespace ecaldqm
   MESetDet1D::setBinEntries(EcalElectronicsId const& _id, int _ybin, double _entries)
   {
     if(!active_) return;
-    if(kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return;
+    if(kind_ != MonitorElement::Kind::TPROFILE2D) return;
 
     unsigned iME(binning::findPlotIndex(otype_, _id));
     checkME_(iME);
@@ -495,7 +495,7 @@ namespace ecaldqm
   MESetDet1D::setBinEntries(int _dcctccid, int _ybin, double _entries)
   {
     if(!active_) return;
-    if(kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return;
+    if(kind_ != MonitorElement::Kind::TPROFILE2D) return;
 
     unsigned iME(binning::findPlotIndex(otype_, _dcctccid));
     checkME_(iME);
@@ -614,7 +614,7 @@ namespace ecaldqm
   MESetDet1D::getBinEntries(DetId const& _id, int _ybin/* = 0*/) const
   {
     if(!active_) return 0.;
-    if(kind_ != MonitorElement::DQM_KIND_TPROFILE && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return 0.;
+    if(kind_ != MonitorElement::Kind::TPROFILE && kind_ != MonitorElement::Kind::TPROFILE2D) return 0.;
 
     unsigned iME(binning::findPlotIndex(otype_, _id));
     checkME_(iME);
@@ -632,7 +632,7 @@ namespace ecaldqm
   MESetDet1D::getBinEntries(EcalElectronicsId const& _id, int _ybin/* = 0*/) const
   {
     if(!active_) return 0.;
-    if(kind_ != MonitorElement::DQM_KIND_TPROFILE && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return 0.;
+    if(kind_ != MonitorElement::Kind::TPROFILE && kind_ != MonitorElement::Kind::TPROFILE2D) return 0.;
 
     unsigned iME(binning::findPlotIndex(otype_, _id));
     checkME_(iME);
@@ -650,7 +650,7 @@ namespace ecaldqm
   MESetDet1D::getBinEntries(int _dcctccid, int _ybin/* = 0*/) const
   {
     if(!active_) return 0.;
-    if(kind_ != MonitorElement::DQM_KIND_TPROFILE && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return 0.;
+    if(kind_ != MonitorElement::Kind::TPROFILE && kind_ != MonitorElement::Kind::TPROFILE2D) return 0.;
 
     unsigned iME(binning::findPlotIndex(otype_, _dcctccid, btype_));
     checkME_(iME);
@@ -668,7 +668,7 @@ namespace ecaldqm
   MESetDet1D::findBin(DetId const& _id) const
   {
     if(!active_) return -1;
-    if(kind_ == MonitorElement::DQM_KIND_TPROFILE || kind_ == MonitorElement::DQM_KIND_TPROFILE2D) return -1;
+    if(kind_ == MonitorElement::Kind::TPROFILE || kind_ == MonitorElement::Kind::TPROFILE2D) return -1;
 
     unsigned iME(binning::findPlotIndex(otype_, _id));
     checkME_(iME);
@@ -681,7 +681,7 @@ namespace ecaldqm
   MESetDet1D::findBin(EcalElectronicsId const& _id) const
   {
     if(!active_) return -1;
-    if(kind_ == MonitorElement::DQM_KIND_TPROFILE || kind_ == MonitorElement::DQM_KIND_TPROFILE2D) return -1;
+    if(kind_ == MonitorElement::Kind::TPROFILE || kind_ == MonitorElement::Kind::TPROFILE2D) return -1;
 
     unsigned iME(binning::findPlotIndex(otype_, _id));
     checkME_(iME);
@@ -694,7 +694,7 @@ namespace ecaldqm
   MESetDet1D::findBin(int _dcctccid) const
   {
     if(!active_) return -1;
-    if(kind_ == MonitorElement::DQM_KIND_TPROFILE || kind_ == MonitorElement::DQM_KIND_TPROFILE2D) return -1;
+    if(kind_ == MonitorElement::Kind::TPROFILE || kind_ == MonitorElement::Kind::TPROFILE2D) return -1;
 
     unsigned iME(binning::findPlotIndex(otype_, _dcctccid));
     checkME_(iME);
@@ -707,7 +707,7 @@ namespace ecaldqm
   MESetDet1D::findBin(DetId const& _id, double _y, double) const
   {
     if(!active_) return -1;
-    if(kind_ != MonitorElement::DQM_KIND_TPROFILE && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return -1;
+    if(kind_ != MonitorElement::Kind::TPROFILE && kind_ != MonitorElement::Kind::TPROFILE2D) return -1;
 
     unsigned iME(binning::findPlotIndex(otype_, _id));
     checkME_(iME);
@@ -724,7 +724,7 @@ namespace ecaldqm
   MESetDet1D::findBin(EcalElectronicsId const& _id, double _y, double) const
   {
     if(!active_) return -1;
-    if(kind_ != MonitorElement::DQM_KIND_TPROFILE && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return -1;
+    if(kind_ != MonitorElement::Kind::TPROFILE && kind_ != MonitorElement::Kind::TPROFILE2D) return -1;
 
     unsigned iME(binning::findPlotIndex(otype_, _id));
     checkME_(iME);
@@ -741,7 +741,7 @@ namespace ecaldqm
   MESetDet1D::findBin(int _dcctccid, double _y, double) const
   {
     if(!active_) return -1;
-    if(kind_ != MonitorElement::DQM_KIND_TPROFILE && kind_ != MonitorElement::DQM_KIND_TPROFILE2D) return -1;
+    if(kind_ != MonitorElement::Kind::TPROFILE && kind_ != MonitorElement::Kind::TPROFILE2D) return -1;
 
     unsigned iME(binning::findPlotIndex(otype_, _dcctccid));
     checkME_(iME);
@@ -759,8 +759,8 @@ namespace ecaldqm
   {
     unsigned nME(binning::getNObjects(otype_));
 
-    bool isProfile(kind_ == MonitorElement::DQM_KIND_TPROFILE || kind_ == MonitorElement::DQM_KIND_TPROFILE2D);
-    bool is2D(kind_ == MonitorElement::DQM_KIND_TH2F || kind_ == MonitorElement::DQM_KIND_TPROFILE2D);
+    bool isProfile(kind_ == MonitorElement::Kind::TPROFILE || kind_ == MonitorElement::Kind::TPROFILE2D);
+    bool is2D(kind_ == MonitorElement::Kind::TH2F || kind_ == MonitorElement::Kind::TPROFILE2D);
 
     for(unsigned iME(0); iME < nME; iME++) {
       MonitorElement* me(mes_[iME]);
