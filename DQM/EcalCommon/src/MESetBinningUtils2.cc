@@ -729,7 +729,9 @@ namespace ecaldqm
         case kSM:
         case kEBSM:
           xbin = (towerid - 1) / 4 + 1;
-          ybin = (isEBm ? towerid - 1 : 68 - towerid) % 4 + 1;
+          //In by SM plots, using towerid, the ybinning always increases from 1 to 4,
+          //whereas using iphi it flips for EB+
+          ybin = (towerid - 1) % 4 + 1;
           break;
         default:
           break;
