@@ -90,6 +90,7 @@ namespace ecaldqm {
     MESet& meBXFEInvalid(MEs_.at("BXFEInvalid"));
     MESet& meL1AFE(MEs_.at("L1AFE"));
     MESet& meFEStatus(MEs_.at("FEStatus"));
+    MESet& meFEStatusMEM(MEs_.at("FEStatusMEM"));
     MESet& meDesyncByLumi(MEs_.at("DesyncByLumi"));
     MESet& meDesyncTotal(MEs_.at("DesyncTotal"));
     MESet& meFEByLumi(MEs_.at("FEByLumi"));
@@ -165,7 +166,17 @@ namespace ecaldqm {
           }
         }
 
-        if(iFE >= 68) continue;
+        if (iFE >= 68) {
+          // FE Status for MEM boxes (towerIds 69 and 70)
+          // Plot contains two bins per dccId. Integer number
+          // bins correspond to towerId 69 and half integer
+          // number bins correspond to towerId 70.
+          if (iFE + 1 == 69)
+            meFEStatusMEM.fill(dccId + 0.0, status);
+          else if (iFE + 1 == 70)
+            meFEStatusMEM.fill(dccId + 0.5, status);
+          continue;
+        }
 
         DetId id(getElectronicsMap()->dccTowerConstituents(dccId, iFE + 1).at(0));
         meFEStatus.fill(id, status);
