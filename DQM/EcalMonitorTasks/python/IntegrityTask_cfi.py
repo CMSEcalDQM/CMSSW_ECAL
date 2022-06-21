@@ -18,6 +18,13 @@ ecalIntegrityTask = cms.untracked.PSet(
             btype = cms.untracked.string('SuperCrystal'),
             description = cms.untracked.string('')
         ),
+        MapByLumi = cms.untracked.PSet(
+            path = cms.untracked.string('%(subdet)s/%(prefix)sIntegrityTask/%(prefix)sIT%(suffix)s integrity errors map by lumi'),
+            kind = cms.untracked.string('TH2F'),
+            otype = cms.untracked.string('Ecal3P'),
+            btype = cms.untracked.string('Crystal'),
+            description = cms.untracked.string('Integrity error occupancy map for this lumisection. Includes Gain, ChId, GainSwitch, TowerId, and BlockSize errors.')
+        ),
         ByLumi = cms.untracked.PSet(
             path = cms.untracked.string('%(subdet)s/%(prefix)sIntegrityTask/%(prefix)sIT weighted integrity errors by lumi'),
             kind = cms.untracked.string('TH1F'),
@@ -63,28 +70,6 @@ ecalIntegrityTask = cms.untracked.PSet(
             otype = cms.untracked.string('SM'),
             btype = cms.untracked.string('SuperCrystal'),
             description = cms.untracked.string('')
-#        ),
-#        # TTF:
-#        TTFlags4 = cms.untracked.PSet(
-#            path = cms.untracked.string('%(subdet)s/%(prefix)sTriggerTowerTask/%(prefix)sTTT TTF4 Occupancy%(suffix)s'),
-#            kind = cms.untracked.string('TH2F'),
-#            otype = cms.untracked.string('Ecal3P'),
-#            btype = cms.untracked.string('TriggerTower'),
-#            description = cms.untracked.string('Occupancy for TP digis with TTF=4.')
-#        ),
-#        TTMaskMapAll = cms.untracked.PSet(
-#            path = cms.untracked.string('%(subdet)s/%(prefix)sTriggerTowerTask/%(prefix)sTTT TT Masking Status%(suffix)s'),
-#            kind = cms.untracked.string('TH2F'),
-#            otype = cms.untracked.string('Ecal3P'),
-#            btype = cms.untracked.string('TriggerTower'),
-#            description = cms.untracked.string('Trigger tower masking status: a TT is red if it is masked.')
-#        ),
-#        TTFlagsMap = cms.untracked.PSet(
-#            path = cms.untracked.string('%(subdet)s/%(prefix)sTriggerTowerTask/%(prefix)sTTT TT Status Flags%(suffix)s'),
-#            kind = cms.untracked.string('TH2F'),
-#            otype = cms.untracked.string('Ecal3P'),
-#            btype = cms.untracked.string('TriggerTower'),
-#            description = cms.untracked.string('Map of the trigger tower flags.')
         )
     )
 )

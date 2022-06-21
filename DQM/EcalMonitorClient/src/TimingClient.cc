@@ -59,15 +59,15 @@ namespace ecaldqm
 
     uint32_t mask(1 << EcalDQMStatusHelper::PHYSICS_BAD_CHANNEL_WARNING);
 
-    MESet::iterator qEnd(meQuality.end());
+    MESet::iterator qEnd(meQuality.end(GetElectronicsMap()));
 
-    MESet::iterator rItr(meRMSMap);
-    MESet::const_iterator tItr(sTimeMap);
+    MESet::iterator rItr(GetElectronicsMap(), meRMSMap);
+    MESet::const_iterator tItr(GetElectronicsMap(), sTimeMap);
 
     float EBentries(0.), EEentries(0.);
     float EBmean(0.), EEmean(0.);
     float EBrms(0.), EErms(0.);
-    for(MESet::iterator qItr(meQuality.beginChannel()); qItr != qEnd; qItr.toNextChannel()){
+    for(MESet::iterator qItr(meQuality.beginChannel(GetElectronicsMap())); qItr != qEnd; qItr.toNextChannel(GetElectronicsMap())) {
 
       tItr = qItr;
       rItr = qItr;
@@ -84,7 +84,7 @@ namespace ecaldqm
         rmsThresh = toleranceRMSFwd_;
       }
 
-      bool doMask(meQuality.maskMatches(id, mask, statusManager_));
+      bool doMask(meQuality.maskMatches(id, mask, statusManager_, GetTrigTowerMap()));
 
       float entries(tItr->getBinEntries());
 
@@ -97,11 +97,11 @@ namespace ecaldqm
       float mean(tItr->getBinContent());
       float rms(tItr->getBinError() * sqrt(entries));
 
-      meMeanSM.fill(id, mean);
-      meMeanAll.fill(id, mean);
-      meProjEta.fill(id, mean);
-      meProjPhi.fill(id, mean);
-      meRMSAll.fill(id, rms);
+      meMeanSM.fill(getEcalDQMSetupObjects(), id, mean);
+      meMeanAll.fill(getEcalDQMSetupObjects(), id, mean);
+      meProjEta.fill(getEcalDQMSetupObjects(), id, mean);
+      meProjPhi.fill(getEcalDQMSetupObjects(), id, mean);
+      meRMSAll.fill(getEcalDQMSetupObjects(), id, rms);
       rItr->setBinContent(rms);
 
       bool negative(false);
@@ -112,7 +112,7 @@ namespace ecaldqm
         if(ebid.zside() < 0){
           negative = true;
           EBDetId posId(EBDetId::switchZSide(ebid));
-          posTime = sTimeMap.getBinContent(posId);
+          posTime = sTimeMap.getBinContent(getEcalDQMSetupObjects(), posId);
         }
       }
       else{
@@ -120,12 +120,12 @@ namespace ecaldqm
         if(eeid.zside() < 0){
           negative = true;
           EEDetId posId(EEDetId::switchZSide(eeid));
-          posTime = sTimeMap.getBinContent(posId);
+          posTime = sTimeMap.getBinContent(getEcalDQMSetupObjects(), posId);
         }
       }
       if(negative){
-        meFwdBkwdDiff.fill(id, posTime - mean);
-        meFwdvBkwd.fill(id, mean, posTime);
+        meFwdBkwdDiff.fill(getEcalDQMSetupObjects(), id, posTime - mean);
+        meFwdvBkwd.fill(getEcalDQMSetupObjects(), id, mean, posTime);
       }
 
       if(abs(mean) > meanThresh || rms > rmsThresh)
@@ -151,24 +151,24 @@ namespace ecaldqm
     MESet& meTrendMean(MEs_.at("TrendMean"));
     MESet& meTrendRMS(MEs_.at("TrendRMS"));
     if ( EBentries > 0. ) {
-      if ( abs(EBmean) > 0. ) meTrendMean.fill( EcalBarrel, double(timestamp_.iLumi), EBmean/EBentries );
-      if ( abs(EBrms ) > 0. ) meTrendRMS.fill ( EcalBarrel, double(timestamp_.iLumi), EBrms/EBentries  );
+      if ( abs(EBmean) > 0. ) meTrendMean.fill( getEcalDQMSetupObjects(), EcalBarrel, double(timestamp_.iLumi), EBmean/EBentries );
+      if ( abs(EBrms ) > 0. ) meTrendRMS.fill ( getEcalDQMSetupObjects(), EcalBarrel, double(timestamp_.iLumi), EBrms/EBentries  );
     }
     if ( EEentries > 0. ) {
-      if ( abs(EEmean) > 0. ) meTrendMean.fill( EcalEndcap, double(timestamp_.iLumi), EEmean/EEentries );
-      if ( abs(EErms ) > 0. ) meTrendRMS.fill ( EcalEndcap, double(timestamp_.iLumi), EErms/EEentries  );
+      if ( abs(EEmean) > 0. ) meTrendMean.fill( getEcalDQMSetupObjects(), EcalEndcap, double(timestamp_.iLumi), EEmean/EEentries );
+      if ( abs(EErms ) > 0. ) meTrendRMS.fill ( getEcalDQMSetupObjects(), EcalEndcap, double(timestamp_.iLumi), EErms/EEentries  );
     }
 
-    MESet::iterator qsEnd(meQualitySummary.end());
+    MESet::iterator qsEnd(meQualitySummary.end(GetElectronicsMap()));
 
-    for(MESet::iterator qsItr(meQualitySummary.beginChannel()); qsItr != qsEnd; qsItr.toNextChannel()){
+    for(MESet::iterator qsItr(meQualitySummary.beginChannel(GetElectronicsMap())); qsItr != qsEnd; qsItr.toNextChannel(GetElectronicsMap())){
 
       DetId tId(qsItr->getId());
 
       std::vector<DetId> ids;
 
       if(tId.subdetId() == EcalTriggerTower)
-        ids = getTrigTowerMap()->constituentsOf(EcalTrigTowerDetId(tId));
+        ids = GetTrigTowerMap()->constituentsOf(EcalTrigTowerDetId(tId));
       else
         ids = scConstituents(EcalScDetId(tId));
 
@@ -183,7 +183,7 @@ namespace ecaldqm
       }
 
       // tower entries != sum(channel entries) because of the difference in timing cut at the source
-      float summaryEntries(sTimeAllMap.getBinEntries(tId));
+      float summaryEntries(sTimeAllMap.getBinEntries(getEcalDQMSetupObjects(), tId));
 
       float towerEntries(0.);
       float towerMean(0.);
@@ -194,9 +194,9 @@ namespace ecaldqm
       for(std::vector<DetId>::iterator idItr(ids.begin()); idItr != ids.end(); ++idItr){
         DetId& id(*idItr);
 
-        doMask |= meQuality.maskMatches(id, mask, statusManager_);
+        doMask |= meQuality.maskMatches(id, mask, statusManager_, GetTrigTowerMap());
 
-        MESet::const_iterator tmItr(sTimeMap, id);
+        MESet::const_iterator tmItr(GetElectronicsMap(), sTimeMap, id);
 
         float entries(tmItr->getBinEntries());
         if(entries < 0.) continue;
@@ -229,4 +229,3 @@ namespace ecaldqm
 
   DEFINE_ECALDQM_WORKER(TimingClient);
 }
-

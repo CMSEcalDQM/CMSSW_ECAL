@@ -66,10 +66,9 @@ namespace ecaldqm
       if(iMax != pulseMaxPosition_ || gainSwitch) continue;
 
       for(int iSample(0); iSample < nSamples_; ++iSample)
-	mePedestal.fill(id, double(dataFrame.sample(iSample).adc()));
+	mePedestal.fill(getEcalDQMSetupObjects(), id, double(dataFrame.sample(iSample).adc()));
     }
   }
 
   DEFINE_ECALDQM_WORKER(PresampleTask);
 }
-

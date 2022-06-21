@@ -17,7 +17,7 @@ namespace ecaldqm
   {
     qualitySummaries_.insert("EmulQualitySummary");
   }
-  
+
   void
   TrigPrimClient::setParams(edm::ParameterSet const& _params)
   {
@@ -40,13 +40,13 @@ namespace ecaldqm
     for(unsigned iTT(0); iTT < EcalTrigTowerDetId::kSizeForDenseIndexing; iTT++){
       EcalTrigTowerDetId ttid(EcalTrigTowerDetId::detIdFromDenseIndex(iTT));
 
-      bool doMask(meEmulQualitySummary.maskMatches(ttid, mask, statusManager_));
+      bool doMask(meEmulQualitySummary.maskMatches(ttid, mask, statusManager_, GetTrigTowerMap()));
 
       float towerEntries(0.);
       float tMax(0.5);
       float nMax(0.);
       for(int iBin(0); iBin < 6; iBin++){
-	float entries(sMatchedIndex.getBinContent(ttid, iBin + 1));
+	float entries(sMatchedIndex.getBinContent(getEcalDQMSetupObjects(), ttid, iBin + 1));
 	towerEntries += entries;
 
 	if(entries > nMax){
@@ -55,22 +55,22 @@ namespace ecaldqm
 	}
       }
 
-      meTimingSummary.setBinContent(ttid, tMax);
+      meTimingSummary.setBinContent(getEcalDQMSetupObjects(), ttid, tMax);
 
       if(towerEntries < minEntries_){
-	meEmulQualitySummary.setBinContent(ttid, doMask ? kMUnknown : kUnknown);
+	meEmulQualitySummary.setBinContent(getEcalDQMSetupObjects(), ttid, doMask ? kMUnknown : kUnknown);
 	continue;
       }
 
       float nonsingleFraction(1. - nMax / towerEntries);
 
       if(nonsingleFraction > 0.)
-	meNonSingleSummary.setBinContent(ttid, nonsingleFraction);
+	meNonSingleSummary.setBinContent(getEcalDQMSetupObjects(), ttid, nonsingleFraction);
 
-      if(sEtEmulError.getBinContent(ttid) / towerEntries > errorFractionThreshold_)
-        meEmulQualitySummary.setBinContent(ttid, doMask ? kMBad : kBad);
+      if(sEtEmulError.getBinContent(getEcalDQMSetupObjects(), ttid) / towerEntries > errorFractionThreshold_)
+        meEmulQualitySummary.setBinContent(getEcalDQMSetupObjects(), ttid, doMask ? kMBad : kBad);
       else
-        meEmulQualitySummary.setBinContent(ttid, doMask ? kMGood : kGood);
+        meEmulQualitySummary.setBinContent(getEcalDQMSetupObjects(), ttid, doMask ? kMGood : kGood);
     }
 
     // Fill TTF4 v Masking ME
@@ -79,22 +79,22 @@ namespace ecaldqm
     MESet& meTTF4vMask(MEs_.at("TTF4vMask"));
     MESet const& sTTFlags4(sources_.at("TTFlags4"));
     MESet const& sTTMaskMapAll(sources_.at("TTMaskMapAll"));
-    
+
     // Loop over all TTs
     for(unsigned iTT(0); iTT < EcalTrigTowerDetId::kSizeForDenseIndexing; iTT++) {
       EcalTrigTowerDetId ttid(EcalTrigTowerDetId::detIdFromDenseIndex(iTT));
-      bool isMasked( sTTMaskMapAll.getBinContent(ttid) > 0. );
-      bool hasTTF4( sTTFlags4.getBinContent(ttid) > 0. );
-      if ( isMasked ) { 
+      bool isMasked( sTTMaskMapAll.getBinContent(getEcalDQMSetupObjects(), ttid) > 0. );
+      bool hasTTF4( sTTFlags4.getBinContent(getEcalDQMSetupObjects(), ttid) > 0. );
+      if ( isMasked ) {
         if ( hasTTF4 )
-          meTTF4vMask.setBinContent( ttid,12 ); // Masked, has TTF4
+          meTTF4vMask.setBinContent( getEcalDQMSetupObjects(), ttid,12 ); // Masked, has TTF4
         else
-          meTTF4vMask.setBinContent( ttid,11 ); // Masked, no TTF4
+          meTTF4vMask.setBinContent( getEcalDQMSetupObjects(), ttid,11 ); // Masked, no TTF4
       } else {
         if ( hasTTF4 )
-          meTTF4vMask.setBinContent( ttid,13 ); // not Masked, has TTF4
-      }   
-    } // TT loop 
+          meTTF4vMask.setBinContent( getEcalDQMSetupObjects(), ttid,13 ); // not Masked, has TTF4
+      }
+    } // TT loop
 
   } // TrigPrimClient::producePlots()
 

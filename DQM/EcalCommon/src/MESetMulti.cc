@@ -101,19 +101,19 @@ namespace ecaldqm
   }
 
   void
-  MESetMulti::book(DQMStore::IBooker& _ibooker)
+  MESetMulti::book(DQMStore::IBooker& _ibooker, EcalElectronicsMapping const *electronicsMap)
   {
     for(unsigned iS(0); iS < sets_.size(); ++iS)
-      sets_[iS]->book(_ibooker);
+      sets_[iS]->book(_ibooker, electronicsMap);
 
     active_ = true;
   }
 
-  bool
-  MESetMulti::retrieve(DQMStore::IGetter& _igetter, std::string* _failedPath/* = 0*/) const
-  {
+  bool MESetMulti::retrieve(EcalElectronicsMapping const *electronicsMap,
+                            DQMStore::IGetter &_igetter,
+                            std::string *_failedPath /* = 0*/) const {
     for(unsigned iS(0); iS < sets_.size(); ++iS)
-      if(!sets_[iS]->retrieve(_igetter, _failedPath)) return false;
+      if(!sets_[iS]->retrieve(electronicsMap, _igetter, _failedPath)) return false;
 
     active_ = true;
     return true;
@@ -128,11 +128,12 @@ namespace ecaldqm
     active_ = false;
   }
 
-  void
-  MESetMulti::reset(double _content/* = 0*/, double _error/* = 0.*/, double _entries/* = 0.*/)
-  {
+  void MESetMulti::reset(EcalElectronicsMapping const *electronicsMap,
+                         double _content /* = 0*/,
+                         double _error /* = 0.*/,
+                         double _entries /* = 0.*/) {
     for(unsigned iS(0); iS < sets_.size(); ++iS)
-      sets_[iS]->reset(_content, _error, _entries);
+      sets_[iS]->reset(electronicsMap, _content, _error, _entries);
   }
 
   void

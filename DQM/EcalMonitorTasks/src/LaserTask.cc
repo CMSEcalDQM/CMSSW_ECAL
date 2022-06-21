@@ -81,7 +81,7 @@ namespace ecaldqm
   }
 
   void
-  LaserTask::beginEvent(edm::Event const& _evt, edm::EventSetup const&)
+  LaserTask::beginEvent(edm::Event const& _evt, edm::EventSetup const&, bool const&, bool&)
   {
     pnAmp_.clear();
   }
@@ -112,24 +112,24 @@ namespace ecaldqm
     for(unsigned iDCC(0); iDCC < nDCC; iDCC++){
        switch (wavelength_[iDCC])
        {
-         case 1: 
+         case 1:
            break;
-         case 2: 
-           LaserStatus[Wavelength::kGreen] = true; 
+         case 2:
+           LaserStatus[Wavelength::kGreen] = true;
            break;
          case 3:
-           LaserStatus[Wavelength::kBlue] = true; 
+           LaserStatus[Wavelength::kBlue] = true;
            break;
          case 4:
-           LaserStatus[Wavelength::kIRed] = true; 
+           LaserStatus[Wavelength::kIRed] = true;
            break;
          default:
            break;
-        } 
+        }
     }
     for(unsigned iWL(0); iWL<nWavelength; iWL++){
-       meCalibStatus.fill(double(iWL), LaserStatus[iWL]? 1:0);
-    }  
+       meCalibStatus.fill(getEcalDQMSetupObjects(), double(iWL), LaserStatus[iWL]? 1:0);
+    }
   }
 
   template<typename DigiCollection>
@@ -154,14 +154,14 @@ namespace ecaldqm
     for(typename DigiCollection::const_iterator digiItr(_digis.begin()); digiItr != _digis.end(); ++digiItr){
       const DetId& id(digiItr->id());
 
-      unsigned iDCC(dccId(id) - 1);
+      unsigned iDCC(dccId(id, GetElectronicsMap()) - 1);
 
       inData[iDCC] = true;
 
       if(!enable_[iDCC]) continue;
-      if(rtHalf(id) != rtHalf_[iDCC]) continue;
+      if(rtHalf(id, GetElectronicsMap()) != rtHalf_[iDCC]) continue;
 
-      meOccupancy.fill(id);
+      meOccupancy.fill(getEcalDQMSetupObjects(), id);
 
       ++nReadouts[iDCC];
 
@@ -219,7 +219,7 @@ namespace ecaldqm
         static_cast<MESetMulti&>(meSignalRate).use(iME);
       }
 
-      meSignalRate.fill(iDCC + 1, enable_[iDCC] ? 1 : 0);
+      meSignalRate.fill(getEcalDQMSetupObjects(), iDCC + 1, enable_[iDCC] ? 1 : 0);
     }
 
     if(enable) emptyLS_ = 0;
@@ -230,10 +230,10 @@ namespace ecaldqm
     for(typename DigiCollection::const_iterator digiItr(_digis.begin()); digiItr != _digis.end(); ++digiItr){
       const DetId& id(digiItr->id());
 
-      unsigned iDCC(dccId(id) - 1);
+      unsigned iDCC(dccId(id, GetElectronicsMap()) - 1);
 
       if(!enable_[iDCC]) continue;
-      if(rtHalf(id) != rtHalf_[iDCC]) continue;
+      if(rtHalf(id, GetElectronicsMap()) != rtHalf_[iDCC]) continue;
 
       EcalDataFrame dataFrame(*digiItr);
 
@@ -243,10 +243,10 @@ namespace ecaldqm
       }
 
       for(int iSample(0); iSample < EcalDataFrame::MAXSAMPLES; iSample++)
-	meShape.fill(id, iSample + 0.5, float(dataFrame.sample(iSample).adc()));
+	meShape.fill(getEcalDQMSetupObjects(), id, iSample + 0.5, float(dataFrame.sample(iSample).adc()));
 
-      EcalPnDiodeDetId pnidA(pnForCrystal(id, 'a'));
-      EcalPnDiodeDetId pnidB(pnForCrystal(id, 'b'));
+      EcalPnDiodeDetId pnidA(pnForCrystal(id, 'a', GetElectronicsMap()));
+      EcalPnDiodeDetId pnidB(pnForCrystal(id, 'b', GetElectronicsMap()));
       if(pnidA.null() || pnidB.null()) continue;
       pnAmp_.insert(std::make_pair(pnidA.rawId(), 0.));
       pnAmp_.insert(std::make_pair(pnidB.rawId(), 0.));
@@ -273,7 +273,7 @@ namespace ecaldqm
       std::map<uint32_t, float>::iterator ampItr(pnAmp_.find(id.rawId()));
       if(ampItr == pnAmp_.end()) continue;
 
-      unsigned iDCC(dccId(id) - 1);
+      unsigned iDCC(dccId(id, GetElectronicsMap()) - 1);
 
       double pedestal(0.);
       for(int iSample(0); iSample < 4; iSample++)
@@ -291,7 +291,7 @@ namespace ecaldqm
         static_cast<MESetMulti&>(mePNAmplitude).use(iME);
       }
 
-      mePNAmplitude.fill(id, max);
+      mePNAmplitude.fill(getEcalDQMSetupObjects(), id, max);
 
       ampItr->second = max;
     }
@@ -317,10 +317,10 @@ namespace ecaldqm
     for(EcalUncalibratedRecHitCollection::const_iterator uhitItr(_uhits.begin()); uhitItr != _uhits.end(); ++uhitItr){
       const DetId& id(uhitItr->id());
 
-      unsigned iDCC(dccId(id) - 1);
+      unsigned iDCC(dccId(id, GetElectronicsMap()) - 1);
 
       if(!enable_[iDCC]) continue;
-      if(rtHalf(id) != rtHalf_[iDCC]) continue;
+      if(rtHalf(id, GetElectronicsMap()) != rtHalf_[iDCC]) continue;
 
       if(iME != wlToME_[wavelength_[iDCC]]){
         iME = wlToME_[wavelength_[iDCC]];
@@ -333,23 +333,22 @@ namespace ecaldqm
       float amp(max((double)uhitItr->amplitude(), 0.));
       float jitter(max((double)uhitItr->jitter() + 5.0, 0.));
 
-      meAmplitude.fill(id, amp);
-      meAmplitudeSummary.fill(id, amp);
-      meTiming.fill(id, jitter);
+      meAmplitude.fill(getEcalDQMSetupObjects(), id, amp);
+      meAmplitudeSummary.fill(getEcalDQMSetupObjects(), id, amp);
+      meTiming.fill(getEcalDQMSetupObjects(), id, jitter);
 
       float aop(0.);
 
-      map<uint32_t, float>::iterator ampItrA(pnAmp_.find(pnForCrystal(id, 'a')));
-      map<uint32_t, float>::iterator ampItrB(pnAmp_.find(pnForCrystal(id, 'b')));
+      map<uint32_t, float>::iterator ampItrA(pnAmp_.find(pnForCrystal(id, 'a', GetElectronicsMap())));
+      map<uint32_t, float>::iterator ampItrB(pnAmp_.find(pnForCrystal(id, 'b', GetElectronicsMap())));
       if(ampItrA == pnAmp_.end() && ampItrB == pnAmp_.end()) continue;
       else if(ampItrB == pnAmp_.end()) aop = amp / ampItrA->second;
       else if(ampItrA == pnAmp_.end()) aop = amp / ampItrB->second;
       else aop = amp / (ampItrA->second + ampItrB->second) * 2.;
 
-      meAOverP.fill(id, aop);
+      meAOverP.fill(getEcalDQMSetupObjects(), id, aop);
     }
   }
 
   DEFINE_ECALDQM_WORKER(LaserTask);
 }
-

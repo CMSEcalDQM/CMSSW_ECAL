@@ -1,12 +1,16 @@
+#include <memory>
+
 #include "DQM/EcalMonitorDbModule/interface/EcalCondDBWriter.h"
 
 #include "DQMServices/Core/interface/DQMStore.h"
+#include "DQM/EcalCommon/interface/MESetUtils.h"
 
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "FWCore/Utilities/interface/Exception.h"
+
 
 #include "TObjArray.h"
 #include "TPRegexp.h"
@@ -15,9 +19,10 @@
 void setBit(int &_bitArray, unsigned _iBit) { _bitArray |= (0x1 << _iBit); }
 
 bool getBit(int &_bitArray, unsigned _iBit) { return (_bitArray & (0x1 << _iBit)) != 0; }
+unsigned int nT=6;
 
 EcalCondDBWriter::EcalCondDBWriter(edm::ParameterSet const &_ps)
-    : runNumber_(0),
+    : runNumber_(_ps.getUntrackedParameter<int>("runNumber")),//(0),
       db_(nullptr),
       location_(_ps.getUntrackedParameter<std::string>("location")),
       runType_(_ps.getUntrackedParameter<std::string>("runType")),
@@ -25,35 +30,9 @@ EcalCondDBWriter::EcalCondDBWriter(edm::ParameterSet const &_ps)
       monRunGeneralTag_(_ps.getUntrackedParameter<std::string>("monRunGeneralTag")),
       summaryWriter_(_ps.getUntrackedParameterSet("workerParams")),
       verbosity_(_ps.getUntrackedParameter<int>("verbosity")),
-      executed_(false) {
-  std::vector<std::string> inputRootFiles(_ps.getUntrackedParameter<std::vector<std::string>>("inputRootFiles"));
+      executed_(false){
 
-  if (inputRootFiles.empty())
-    throw cms::Exception("Configuration") << "No input ROOT file given";
-
-  if (verbosity_ > 0)
-    edm::LogInfo("EcalDQM") << "Initializing DQMStore from input ROOT files";
-
-  DQMStore &dqmStore(*edm::Service<DQMStore>());
-
-  for (unsigned iF(0); iF < inputRootFiles.size(); ++iF) {
-    std::string &fileName(inputRootFiles[iF]);
-
-    if (verbosity_ > 1)
-      edm::LogInfo("EcalDQM") << " " << fileName;
-
-    TPRegexp pat("DQM_V[0-9]+(?:|_[0-9a-zA-Z]+)_R([0-9]+)");
-    std::unique_ptr<TObjArray> matches(pat.MatchS(fileName.c_str()));
-    if (matches->GetEntries() == 0)
-      throw cms::Exception("Configuration") << "Input file " << fileName << " is not an DQM output";
-
-    if (iF == 0)
-      runNumber_ = TString(matches->At(1)->GetName()).Atoi();
-    else if (TString(matches->At(1)->GetName()).Atoi() != runNumber_)
-      throw cms::Exception("Configuration") << "Input files disagree in run number";
-
-    dqmStore.open(fileName, false, "", "", DQMStore::StripRunDirs);
-  }
+  edm::ConsumesCollector collector(consumesCollector());
 
   std::string DBName(_ps.getUntrackedParameter<std::string>("DBName"));
   std::string hostName(_ps.getUntrackedParameter<std::string>("hostName"));
@@ -62,17 +41,15 @@ EcalCondDBWriter::EcalCondDBWriter(edm::ParameterSet const &_ps)
   std::string password(_ps.getUntrackedParameter<std::string>("password"));
 
   std::unique_ptr<EcalCondDBInterface> db(nullptr);
-
   if (verbosity_ > 0)
     edm::LogInfo("EcalDQM") << "Establishing DB connection";
 
   try {
-    db = std::unique_ptr<EcalCondDBInterface>(new EcalCondDBInterface(DBName, userName, password));
+    db = std::make_unique<EcalCondDBInterface>(DBName, userName, password);
   } catch (std::runtime_error &re) {
     if (!hostName.empty()) {
       try {
-        db = std::unique_ptr<EcalCondDBInterface>(
-            new EcalCondDBInterface(hostName, DBName, userName, password, hostPort));
+        db = std::make_unique<EcalCondDBInterface>(hostName, DBName, userName, password, hostPort);
       } catch (std::runtime_error &re2) {
         throw cms::Exception("DBError") << re2.what();
       }
@@ -88,12 +65,12 @@ EcalCondDBWriter::EcalCondDBWriter(edm::ParameterSet const &_ps)
   edm::ParameterSet const &workerParams(_ps.getUntrackedParameterSet("workerParams"));
 
   workers_[Integrity] = new ecaldqm::IntegrityWriter(workerParams);
-  workers_[Cosmic] = nullptr;
+  workers_[Cosmic] = new ecaldqm::IntegrityWriter(workerParams); //nullptr ->this segfaults in setTokens below
   workers_[Laser] = new ecaldqm::LaserWriter(workerParams);
   workers_[Pedestal] = new ecaldqm::PedestalWriter(workerParams);
   workers_[Presample] = new ecaldqm::PresampleWriter(workerParams);
   workers_[TestPulse] = new ecaldqm::TestPulseWriter(workerParams);
-  workers_[BeamCalo] = nullptr;
+ /* workers_[BeamCalo] = nullptr;
   workers_[BeamHodo] = nullptr;
   workers_[TriggerPrimitives] = nullptr;
   workers_[Cluster] = nullptr;
@@ -101,10 +78,17 @@ EcalCondDBWriter::EcalCondDBWriter(edm::ParameterSet const &_ps)
   workers_[Led] = new ecaldqm::LedWriter(workerParams);
   workers_[RawData] = nullptr;
   workers_[Occupancy] = new ecaldqm::OccupancyWriter(workerParams);
-
-  for (unsigned iC(0); iC < nTasks; ++iC)
-    if (workers_[iC])
+*/
+  std::cout<<"\n WorkerParams set!!"<<std::endl;
+  for (unsigned iC(0); iC < nT; ++iC){
+    std::cout<<"\n Worker iC= "<<iC<<std::endl;
+    if (workers_[iC]){
       workers_[iC]->setVerbosity(verbosity_);
+      workers_[iC]->setTokens(collector);
+    }
+   }  
+   std::cout<<"\n Worker verbosity set!!"<<std::endl;
+  
 }
 
 EcalCondDBWriter::~EcalCondDBWriter() {
@@ -114,16 +98,27 @@ EcalCondDBWriter::~EcalCondDBWriter() {
     throw cms::Exception("DBError") << e.what();
   }
 
-  for (unsigned iC(0); iC < nTasks; ++iC)
+  for (unsigned iC(0); iC < nT; ++iC)
     delete workers_[iC];
 }
+///*
+void EcalCondDBWriter::beginRun(edm::Run const &_run, edm::EventSetup const &_es) {
+  //std::cout<<"\n\n **** Entered EcalCondDBWriter::beginRun ****\n"; 
+  for (unsigned iC(0); iC < nT; ++iC) {
+    workers_[iC]->setSetupObjects(_es);
+  }
+} 
 
 void EcalCondDBWriter::dqmEndJob(DQMStore::IBooker &, DQMStore::IGetter &_igetter) {
-  if (executed_)
-    return;
+  if (verbosity_ > 0)
+          edm::LogInfo("EcalDQM") << " Done.";
+  
 
+}
+void EcalCondDBWriter::dqmEndRun(DQMStore::IBooker &, DQMStore::IGetter &_igetter, edm::Run const &, edm::EventSetup const& _es){
   /////////////////////// INPUT INITIALIZATION /////////////////////////
-
+  if (executed_)
+           return;
   if (verbosity_ > 1)
     edm::LogInfo("EcalDQM") << " Searching event info";
 
@@ -164,14 +159,22 @@ void EcalCondDBWriter::dqmEndJob(DQMStore::IBooker &, DQMStore::IGetter &_igette
   if (verbosity_ > 0)
     edm::LogInfo("EcalDQM") << "Setting up source MonitorElements for given run type " << runType_;
 
-  int taskList(0);
-  for (unsigned iC(0); iC < nTasks; ++iC) {
+ int taskList(0);
+ 
+  for (unsigned iC(0); iC < nT; ++iC) {
     if (!workers_[iC] || !workers_[iC]->runsOn(runType_))
-      continue;
-
-    workers_[iC]->retrieveSource(_igetter);
-
+      continue; 
+    workers_[iC]->retrieveSource(_igetter);//, _es);
+    std::cout<<"\n Workers_["<<iC<<"] retrieved"<<std::endl;
     setBit(taskList, iC);
+  }
+//*/
+  for (unsigned iC(0); iC < nT; ++iC) {
+   if (workers_[iC]){
+   bool act;
+   act=workers_[iC]->isActive();
+   std::cout<<"workers_["<<iC<<"] status: "<<act<<std::endl;
+      }
   }
 
   if (verbosity_ > 0)
@@ -185,9 +188,11 @@ void EcalCondDBWriter::dqmEndJob(DQMStore::IBooker &, DQMStore::IGetter &_igette
   RunIOV runIOV;
   RunTag runTag;
   try {
+    std::cout<<"\nTry db fetch runIOV\n";
     runIOV = db_->fetchRunIOV(location_, runNumber_);
     runTag = runIOV.getRunTag();
   } catch (std::runtime_error &e) {
+    std::cout<<"\nEntered runIOV catch\n";
     std::cerr << e.what();
 
     if (timeStampInFile == 0)
@@ -208,7 +213,9 @@ void EcalCondDBWriter::dqmEndJob(DQMStore::IBooker &, DQMStore::IGetter &_igette
     try {
       db_->insertRunIOV(&runIOV);
       runIOV = db_->fetchRunIOV(&runTag, runNumber_);
+      std::cout<<"Try RUNIOV db insert\n";
     } catch (std::runtime_error &e) {
+      std::cout<<"catch RUNIOV error!\n";
       throw cms::Exception("DBError") << e.what();
     }
   }
@@ -231,6 +238,7 @@ void EcalCondDBWriter::dqmEndJob(DQMStore::IBooker &, DQMStore::IGetter &_igette
   try {
     monIOV = db_->fetchMonRunIOV(&runTag, &monTag, runNumber_, 1);
   } catch (std::runtime_error &e) {
+    std::cout<<"Entered monIOV db fectch catch\n";
     std::cerr << e.what();
 
     monIOV.setRunIOV(runIOV);
@@ -240,9 +248,11 @@ void EcalCondDBWriter::dqmEndJob(DQMStore::IBooker &, DQMStore::IGetter &_igette
     monIOV.setMonRunTag(monTag);
 
     try {
+      std::cout<<"Try db insertMonIOV\n";
       db_->insertMonRunIOV(&monIOV);
       monIOV = db_->fetchMonRunIOV(&runTag, &monTag, runNumber_, 1);
     } catch (std::runtime_error &e) {
+      std::cout<<"Catch: MonIOV error!\n";
       throw cms::Exception("DBError") << e.what();
     }
   }
@@ -256,10 +266,11 @@ void EcalCondDBWriter::dqmEndJob(DQMStore::IBooker &, DQMStore::IGetter &_igette
     edm::LogInfo("EcalDQM") << "Writing to DB";
 
   int outcome(0);
-  for (unsigned iC(0); iC < nTasks; ++iC) {
+  for (unsigned iC(0); iC < nT; ++iC) {
+    //std::cout<<"taskList = "<<taskList<<", iC = "<<iC<<std::endl;
     if (!getBit(taskList, iC))
       continue;
-
+    //std::cout<<"Passed getbit iC ="<<iC<<std::endl;
     if (verbosity_ > 1)
       edm::LogInfo("EcalDQM") << " " << workers_[iC]->getName();
 

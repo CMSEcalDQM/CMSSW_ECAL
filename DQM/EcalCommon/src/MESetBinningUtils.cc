@@ -13,9 +13,12 @@ namespace ecaldqm
 {
   namespace binning
   {
-    AxisSpecs
-    getBinning(ObjectType _otype, BinningType _btype, bool _isMap, int _axis, unsigned _iME)
-    {
+    AxisSpecs getBinning(EcalElectronicsMapping const *electronicsMap,
+                         ObjectType _otype,
+                         BinningType _btype,
+                         bool _isMap,
+                         int _axis,
+                         unsigned _iME) {
       if(_otype >= nObjType || _btype >= unsigned(nPresetBinnings))
         return AxisSpecs(); // you are on your own
 
@@ -29,17 +32,17 @@ namespace ecaldqm
       case kEEp:
         return getBinningEE_(_btype, _isMap, 1, _axis);
       case kSM:
-        return getBinningSM_(_btype, _isMap, _iME, _axis);
+        return getBinningSM_(_btype, _isMap, _iME, _axis, electronicsMap);
       case kEBSM:
-        return getBinningSM_(_btype, _isMap, _iME + 9, _axis);
+        return getBinningSM_(_btype, _isMap, _iME + 9, _axis, electronicsMap);
       case kEESM:
-        if(_iME <= kEEmHigh) return getBinningSM_(_btype, _isMap, _iME, _axis);
-        else return getBinningSM_(_btype, _isMap, _iME + nEBDCC, _axis);
+        if(_iME <= kEEmHigh) return getBinningSM_(_btype, _isMap, _iME, _axis, electronicsMap);
+        else return getBinningSM_(_btype, _isMap, _iME + nEBDCC, _axis, electronicsMap);
       case kSMMEM:
         return getBinningSMMEM_(_btype, _isMap, _iME, _axis);
       case kEBSMMEM:
         return getBinningSMMEM_(_btype, _isMap, _iME + nEEDCCMEM / 2, _axis);
-      case kEESMMEM: 
+      case kEESMMEM:
         if(_iME <= kEEmHigh) return getBinningSMMEM_(_btype, _isMap, _iME, _axis);
         else return getBinningSMMEM_(_btype, _isMap, _iME + nEBDCC, _axis);
       case kEcal:
@@ -55,65 +58,66 @@ namespace ecaldqm
       }
     }
 
-    int
-    findBin1D(ObjectType _otype, BinningType _btype, const DetId& _id)
-    {
+    int findBin1D(EcalElectronicsMapping const *electronicsMap,
+                  ObjectType _otype,
+                  BinningType _btype,
+                  const DetId &_id) {
       switch(_otype){
       case kSM:
       case kEBSM:
       case kEESM:
         if(_btype == kSuperCrystal)
-          return towerId(_id);
+          return towerId(_id, electronicsMap);
         else if(_btype == kTriggerTower){
-          unsigned tccid(tccId(_id));
+          unsigned tccid(tccId(_id, electronicsMap));
           if(tccid <= 36 || tccid >= 73){ // EE
-            unsigned bin(ttId(_id));
+            unsigned bin(ttId(_id, electronicsMap));
             bool outer((tccid >= 19 && tccid <= 36) || (tccid >= 73 && tccid <= 90));
             if(outer) bin += 48;
             bin += (tccid % 2) * (outer ? 16 : 24);
             return bin;
           }
           else
-            return ttId(_id);
+            return ttId(_id, electronicsMap);
         }
         else
           break;
       case kEcal:
         if(_btype == kDCC)
-          return dccId(_id);
+          return dccId(_id, electronicsMap);
         else if(_btype == kTCC)
-          return tccId(_id);
+          return tccId(_id, electronicsMap);
         else
           break;
       case kEB:
         if(_btype == kDCC)
-          return dccId(_id) - 9;
+          return dccId(_id, electronicsMap) - 9;
         else if(_btype == kTCC)
-          return tccId(_id) - 36;
+          return tccId(_id, electronicsMap) - 36;
         else
           break;
       case kEEm:
         if(_btype == kDCC)
-          return dccId(_id);
+          return dccId(_id, electronicsMap);
         else if(_btype == kTCC)
-          return tccId(_id);
+          return tccId(_id, electronicsMap);
         else
           break;
       case kEEp:
         if(_btype == kDCC)
-          return dccId(_id) - 45;
+          return dccId(_id, electronicsMap) - 45;
         else if(_btype == kTCC)
-          return tccId(_id) - 72;
+          return tccId(_id, electronicsMap) - 72;
         else
           break;
       case kEE:
         if(_btype == kDCC){
-          int bin(dccId(_id));
+          int bin(dccId(_id, electronicsMap));
           if(bin >= 46) bin -= 36;
           return bin;
         }
         else if(_btype == kTCC){
-          int bin(tccId(_id));
+          int bin(tccId(_id, electronicsMap));
           if(bin >= 72) bin -= 36;
           return bin;
         }
@@ -133,9 +137,10 @@ namespace ecaldqm
       return 0;
     }
 
-    int
-    findBin1D(ObjectType _otype, BinningType _btype, const EcalElectronicsId& _id)
-    {
+    int findBin1D(EcalElectronicsMapping const *electronicsMap,
+                  ObjectType _otype,
+                  BinningType _btype,
+                  const EcalElectronicsId &_id) {
       switch(_otype){
       case kSM:
       case kEBSM:
@@ -143,16 +148,16 @@ namespace ecaldqm
         if(_btype == kSuperCrystal)
           return towerId(_id);
         else if(_btype == kTriggerTower){
-          unsigned tccid(tccId(_id));
+          unsigned tccid(tccId(_id, electronicsMap));
           if(tccid <= 36 || tccid >= 73){ // EE
-            unsigned bin(ttId(_id));
+            unsigned bin(ttId(_id, electronicsMap));
             bool outer((tccid >= 19 && tccid <= 36) || (tccid >= 73 && tccid <= 90));
             if(outer) bin += 48;
             bin += (tccid % 2) * (outer ? 16 : 24);
             return bin;
           }
           else
-            return ttId(_id);
+            return ttId(_id, electronicsMap);
         }
         else
           break;
@@ -160,28 +165,28 @@ namespace ecaldqm
         if(_btype == kDCC)
           return dccId(_id);
         else if(_btype == kTCC)
-          return tccId(_id);
+          return tccId(_id, electronicsMap);
         else
           break;
       case kEB:
         if(_btype == kDCC)
           return dccId(_id) - 9;
         else if(_btype == kTCC)
-          return tccId(_id) - 36;
+          return tccId(_id, electronicsMap) - 36;
         else
           break;
       case kEEm:
         if(_btype == kDCC)
           return dccId(_id);
         else if(_btype == kTCC)
-          return tccId(_id);
+          return tccId(_id, electronicsMap);
         else
           break;
       case kEEp:
         if(_btype == kDCC)
           return dccId(_id) - 45;
         else if(_btype == kTCC)
-          return tccId(_id) - 72;
+          return tccId(_id, electronicsMap) - 72;
         else
           break;
       case kEE:
@@ -191,7 +196,7 @@ namespace ecaldqm
           return bin;
         }
         else if(_btype == kTCC){
-          int bin(tccId(_id));
+          int bin(tccId(_id, electronicsMap));
           if(bin >= 72) bin -= 36;
           return bin;
         }
@@ -204,9 +209,7 @@ namespace ecaldqm
       return 0;
     }
 
-    int
-    findBin1D(ObjectType _otype, BinningType _btype, int _dcctccid)
-    {
+    int findBin1D(EcalElectronicsMapping const *electronicsMap, ObjectType _otype, BinningType _btype, int _dcctccid) {
       if(_otype == kEcal && _btype == kDCC)
         return _dcctccid;
       else if(_otype == kEcal && _btype == kTCC)
@@ -231,23 +234,24 @@ namespace ecaldqm
       return 0;
     }
 
-    int
-    findBin2D(ObjectType _otype, BinningType _btype, const DetId& _id)
-    {
+    int findBin2D(EcalElectronicsMapping const *electronicsMap,
+                  ObjectType _otype,
+                  BinningType _btype,
+                  const DetId &_id) {
       if(_otype >= nObjType || _btype >= unsigned(nPresetBinnings)) return 0;
 
       switch(_btype){
       case kCrystal:
-        return findBinCrystal_(_otype, _id);
+        return findBinCrystal_(electronicsMap, _otype, _id);
         break;
       case kTriggerTower:
-        return findBinTriggerTower_(_otype, _id);
+        return findBinTriggerTower_(electronicsMap, _otype, _id);
         break;
       case kSuperCrystal:
-        return findBinSuperCrystal_(_otype, _id);
+        return findBinSuperCrystal_(electronicsMap, _otype, _id);
         break;
       case kPseudoStrip:
-        return findBinPseudoStrip_(_otype, _id);
+        return findBinPseudoStrip_(electronicsMap, _otype, _id);
         break;
       case kRCT:
         return findBinRCT_(_otype, _id);
@@ -257,26 +261,25 @@ namespace ecaldqm
       }
     }
 
-    int
-    findBin2D(ObjectType _otype, BinningType _btype, const EcalElectronicsId &_id)
-    {
+    int findBin2D(EcalElectronicsMapping const *electronicsMap,
+                  ObjectType _otype,
+                  BinningType _btype,
+                  const EcalElectronicsId &_id) {
       if(_otype >= nObjType || _btype >= unsigned(nPresetBinnings)) return 0;
 
       switch(_btype){
       case kCrystal:
-        return findBinCrystal_(_otype, _id);
+        return findBinCrystal_(electronicsMap, _otype, _id);
         break;
       case kSuperCrystal:
-        return findBinSuperCrystal_(_otype, _id);
+        return findBinSuperCrystal_(electronicsMap, _otype, _id);
         break;
       default :
         return 0;
       }
     }
 
-    int
-    findBin2D(ObjectType _otype, BinningType _btype, int _dccid)
-    {
+    int findBin2D(EcalElectronicsMapping const *electronicsMap, ObjectType _otype, BinningType _btype, int _dccid) {
       if(_otype != kEcal || _btype != kDCC) return 0;
 
       int nbinsX(9);
@@ -289,9 +292,7 @@ namespace ecaldqm
       return (nbinsX + 2) * ybin + xbin;
     }
 
-    unsigned
-    findPlotIndex(ObjectType _otype, const DetId &_id)
-    {
+    unsigned findPlotIndex(EcalElectronicsMapping const *electronicsMap, ObjectType _otype, const DetId &_id) {
       if(getNObjects(_otype) == 1) return 0;
 
       switch(_otype){
@@ -318,28 +319,29 @@ namespace ecaldqm
 
       case kMEM2P:
         if(_id.subdetId() == EcalLaserPnDiode){
-          unsigned iDCC(dccId(_id) - 1);
+          unsigned iDCC(dccId(_id, electronicsMap) - 1);
           if(iDCC >= kEBmLow && iDCC <= kEBpHigh) return 1;
           else return 0;
         }
         else return -1;
 
       default:
-        return findPlotIndex(_otype, dccId(_id));
+        return findPlotIndex(electronicsMap, _otype, dccId(_id, electronicsMap));
       }
     }
 
-    unsigned
-    findPlotIndex(ObjectType _otype, const EcalElectronicsId &_id)
-    {
+    unsigned findPlotIndex(EcalElectronicsMapping const *electronicsMap,
+                           ObjectType _otype,
+                           const EcalElectronicsId &_id) {
       if(getNObjects(_otype) == 1) return 0;
 
-      return findPlotIndex(_otype, _id.dccId());
+      return findPlotIndex(electronicsMap, _otype, _id.dccId());
     }
 
-    unsigned
-    findPlotIndex(ObjectType _otype, int _dcctccid, BinningType _btype/* = kDCC*/)
-    {
+    unsigned findPlotIndex(EcalElectronicsMapping const *electronicsMap,
+                           ObjectType _otype,
+                           int _dcctccid,
+                           BinningType _btype /* = kDCC*/) {
       if(getNObjects(_otype) == 1) return 0;
 
       int iSM(_dcctccid - 1);
@@ -347,9 +349,11 @@ namespace ecaldqm
       switch(_otype){
       case kSM:
         if(_btype == kPseudoStrip){
-          iSM = iSM <= kEEmTCCHigh ? (iSM + 1) % 18 / 2 : iSM >= kEEpTCCLow ? (iSM + 1 - 72) % 18 / 2 + 45: (iSM + 1) - kEEmTCCHigh;
+            iSM = iSM <= kEEmTCCHigh  ? (iSM + 1) % 18 / 2
+                  : iSM >= kEEpTCCLow ? (iSM + 1 - 72) % 18 / 2 + 45
+                                      : (iSM + 1) - kEEmTCCHigh;
           return iSM;
-        } 
+        }
         else return iSM;
 
       case kEBSM:
@@ -488,9 +492,8 @@ namespace ecaldqm
       }
     }
 
-    bool
-    isValidIdBin(ObjectType _otype, BinningType _btype, unsigned _iME, int _bin)
-    {
+    bool isValidIdBin(
+        EcalElectronicsMapping const *electronicsMap, ObjectType _otype, BinningType _btype, unsigned _iME, int _bin) {
       if(_otype == kEEm || _otype == kEEp){
         if(_btype == kCrystal || _btype == kTriggerTower)
           return EEDetId::validDetId(_bin % 102, _bin / 102, 1);
@@ -514,7 +517,7 @@ namespace ecaldqm
         if(_otype == kEESM && iSM > kEEmHigh) iSM += nEBDCC;
 
         if(iSM >= kEBmLow && iSM <= kEBpHigh) return true;
-    
+
         if(_btype == kCrystal || _btype == kTriggerTower){
           int nX(nEESMX);
           if(iSM == kEEm02 || iSM == kEEm08 || iSM == kEEp02 || iSM == kEEp08) nX = nEESMXExt;
@@ -522,7 +525,7 @@ namespace ecaldqm
           int ix(_bin % (nX + 2) + xlow_(iSM));
           int iy(_bin / (nX + 2) + ylow_(iSM));
           int z(iSM <= kEEmHigh ? -1 : 1);
-          return EEDetId::validDetId(ix, iy, 1) && iSM == dccId(EEDetId(ix, iy, z)) - 1;
+          return EEDetId::validDetId(ix, iy, 1) && iSM == dccId(EEDetId(ix, iy, z), electronicsMap) - 1;
         }
         else if(_btype == kSuperCrystal){
           int nX(nEESMX / 5);
@@ -531,16 +534,16 @@ namespace ecaldqm
           int ix(_bin % (nX + 2) + xlow_(iSM) / 5);
           int iy(_bin / (nX + 2) + ylow_(iSM) / 5);
           int z(iSM <= kEEmHigh ? -1 : 1);
-          return EcalScDetId::validDetId(ix, iy, z) && iSM == dccId(EcalScDetId(ix, iy, z)) - 1;
+          return EcalScDetId::validDetId(ix, iy, z) && iSM == dccId(EcalScDetId(ix, iy, z), electronicsMap) - 1;
         }
       }
 
       return true;
     }
 
-    std::string
-    channelName(uint32_t _rawId, BinningType _btype/* = kDCC*/)
-    {
+    std::string channelName(const EcalElectronicsMapping *electronicsMap,
+                            uint32_t _rawId,
+                            BinningType _btype /* = kDCC*/) {
       // assume the following IDs for respective binning types:
       // Crystal: EcalElectronicsId
       // TriggerTower: EcalTriggerElectronicsId (pstrip and channel ignored)
@@ -561,14 +564,14 @@ namespace ecaldqm
             ss << smName(eid.dccId()) << " DCC " << eid.dccId() << " CCU " << eid.towerId() << " strip " << eid.stripId() << " xtal " << eid.xtalId();
 
             if(eid.dccId() >= kEBmLow + 1 && eid.dccId() <= kEBpHigh + 1){
-              EBDetId ebid(getElectronicsMap()->getDetId(eid));
+              EBDetId ebid(electronicsMap->getDetId(eid));
               ss << " (EB ieta " << std::showpos << ebid.ieta() << std::noshowpos << " iphi " << ebid.iphi() << ")";
             }
             else{
-              EEDetId eeid(getElectronicsMap()->getDetId(eid));
+              EEDetId eeid(electronicsMap->getDetId(eid));
               ss << " (EE ix " << eeid.ix() << " iy " << eeid.iy() << ")";
             }
-            EcalTriggerElectronicsId teid(getElectronicsMap()->getTriggerElectronicsId(eid));
+            EcalTriggerElectronicsId teid(electronicsMap->getTriggerElectronicsId(eid));
             ss << " (TCC " << teid.tccId() << " TT " << teid.ttId() << " pstrip " << teid.pseudoStripId() << " chan " << teid.channelId() << ")";
             break;
           }
@@ -577,7 +580,7 @@ namespace ecaldqm
         {
           // EB-03 DCC 12 TCC 18 TT 3
           EcalTriggerElectronicsId teid(_rawId);
-          EcalElectronicsId eid(getElectronicsMap()->getElectronicsId(teid));
+          EcalElectronicsId eid(electronicsMap->getElectronicsId(teid));
           ss << smName(eid.dccId()) << " DCC " << eid.dccId() << " TCC " << teid.tccId() << " TT " << teid.ttId();
           break;
         }
@@ -587,11 +590,11 @@ namespace ecaldqm
           EcalElectronicsId eid(_rawId);
           ss << smName(eid.dccId()) << " DCC " << eid.dccId() << " CCU " << eid.towerId();
           if(eid.dccId() >= kEBmLow + 1 && eid.dccId() <= kEBpHigh + 1){
-            EcalTrigTowerDetId ttid(EBDetId(getElectronicsMap()->getDetId(eid)).tower());
+            EcalTrigTowerDetId ttid(EBDetId(electronicsMap->getDetId(eid)).tower());
             ss << " (EBTT ieta " << std::showpos << ttid.ieta() << std::noshowpos << " iphi " << ttid.iphi() << ")";
           }
           else{
-            EcalScDetId scid(EEDetId(getElectronicsMap()->getDetId(eid)).sc());
+            EcalScDetId scid(EEDetId(electronicsMap->getDetId(eid)).sc());
             ss << " (EESC ix " << scid.ix() << " iy " << scid.iy() << ")";
           }
           break;
@@ -600,7 +603,7 @@ namespace ecaldqm
         {
           // EB-03 TCC 12
           int tccid(_rawId - nDCC);
-          int dccid(getElectronicsMap()->DCCid(getElectronicsMap()->getTrigTowerDetId(tccid, 1)));
+          int dccid(electronicsMap->DCCid(electronicsMap->getTrigTowerDetId(tccid, 1)));
           ss << smName(dccid) << " TCC " << (_rawId - nDCC);
           break;
         }
@@ -671,7 +674,7 @@ namespace ecaldqm
           }
         }
       }
-  
+
       delete matches;
 
       return rawId;
@@ -790,8 +793,8 @@ namespace ecaldqm
         }
       }
 
-      axis.title = _axisParams.getUntrackedParameter<std::string>("title");
-
+      //axis.title = _axisParams.getUntrackedParameter<std::string>("title");
+      if (_axisParams.existsAs<std::vector<std::string>>("title", false)) axis.title = _axisParams.getUntrackedParameter<std::string>("titl    e");
       return axis;
     }
 

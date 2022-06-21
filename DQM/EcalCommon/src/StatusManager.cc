@@ -75,7 +75,7 @@ namespace ecaldqm
       0x1 << EcalDQMStatusHelper::PHYSICS_BAD_CHANNEL_ERROR;
 
     dictionary_["dead_channel"] =
-      0x1 << EcalDQMStatusHelper::PEDESTAL_LOW_GAIN_MEAN_ERROR | 
+      0x1 << EcalDQMStatusHelper::PEDESTAL_LOW_GAIN_MEAN_ERROR |
       0x1 << EcalDQMStatusHelper::PEDESTAL_LOW_GAIN_RMS_ERROR |
       0x1 << EcalDQMStatusHelper::PEDESTAL_MIDDLE_GAIN_MEAN_ERROR |
       0x1 << EcalDQMStatusHelper::PEDESTAL_MIDDLE_GAIN_RMS_ERROR |
@@ -95,7 +95,7 @@ namespace ecaldqm
       0x1 << EcalDQMStatusHelper::LASER_TIMING_RMS_ERROR |
       0x1 << EcalDQMStatusHelper::LED_MEAN_ERROR |
       0x1 << EcalDQMStatusHelper::LED_RMS_ERROR |
-      0x1 << EcalDQMStatusHelper::LED_TIMING_MEAN_ERROR | 
+      0x1 << EcalDQMStatusHelper::LED_TIMING_MEAN_ERROR |
       0x1 << EcalDQMStatusHelper::LED_TIMING_RMS_ERROR |
       0x1 << EcalDQMStatusHelper::PHYSICS_BAD_CHANNEL_WARNING |
       0x1 << EcalDQMStatusHelper::PHYSICS_BAD_CHANNEL_ERROR;
@@ -139,7 +139,7 @@ namespace ecaldqm
   }
 
   void
-  StatusManager::readFromStream(std::istream& _input)
+  StatusManager::readFromStream(std::istream& _input, const EcalElectronicsMapping *electronicsMap)
   {
     TPRegexp linePat("^[ ]*(Crystal|TT|PN)[ ]+(EB[0-9+-]*|EE[0-9+-]*|[0-9]+)[ ]+([0-9]+)[ ]([a-zA-Z_]+)");
 
@@ -196,7 +196,7 @@ namespace ecaldqm
           status_.insert(std::pair<uint32_t, uint32_t>(EcalTrigTowerDetId(zside, EcalBarrel, iEta, iPhi).rawId(), statusVal));
         }
         else if(module.Contains("EE")){
-          std::vector<EcalScDetId> scIds(getElectronicsMap()->getEcalScDetId(dccId(module.Data()), channel, false));
+          std::vector<EcalScDetId> scIds(electronicsMap->getEcalScDetId(dccId(module.Data()), channel, false));
           for(unsigned iS(0); iS != scIds.size(); ++iS)
             status_.insert(std::pair<uint32_t, uint32_t>(scIds[iS].rawId(), statusVal));
         }

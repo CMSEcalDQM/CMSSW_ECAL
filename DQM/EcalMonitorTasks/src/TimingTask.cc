@@ -41,7 +41,7 @@ namespace ecaldqm
     return false;
   }
 
-  void 
+  void
   TimingTask::runOnRecHits(EcalRecHitCollection const& _hits, Collections _collection)
   {
     MESet& meTimeAmp(MEs_.at("TimeAmp"));
@@ -65,14 +65,14 @@ namespace ecaldqm
                     float chi2Threshold = ( id.subdetId() == EcalBarrel ) ? chi2ThresholdEB_ : chi2ThresholdEE_;
                     if( hit.chi2() > chi2Threshold ) return;
 
-                    meTimeAmp.fill(id, energy, time);
-                    meTimeAmpAll.fill(id, energy, time);
+                    meTimeAmp.fill(getEcalDQMSetupObjects(), id, energy, time);
+                    meTimeAmpAll.fill(getEcalDQMSetupObjects(), id, energy, time);
 
                     if(energy > threshold){
-                      meTimeAll.fill(id, time);
-                      meTimeMap.fill(id, time);
-                      meTime1D.fill(id, time);
-                      meTimeAllMap.fill(id, time);
+                      meTimeAll.fill(getEcalDQMSetupObjects(), id, time);
+                      meTimeMap.fill(getEcalDQMSetupObjects(), id, time);
+                      meTime1D.fill(getEcalDQMSetupObjects(), id, time);
+                      meTimeAllMap.fill(getEcalDQMSetupObjects(), id, time);
                     }
                   });
   }
@@ -104,8 +104,8 @@ namespace ecaldqm
       if( abs(hitTime) >= 5. ) continue;
 
       // Fill MEs
-      meTimeAmpBXm.fill( id,amp,uhitItr->outOfTimeAmplitude(4) ); // BX-1
-      meTimeAmpBXp.fill( id,amp,uhitItr->outOfTimeAmplitude(6) ); // BX+1
+      meTimeAmpBXm.fill(getEcalDQMSetupObjects(),  id,amp,uhitItr->outOfTimeAmplitude(4) ); // BX-1
+      meTimeAmpBXp.fill(getEcalDQMSetupObjects(),  id,amp,uhitItr->outOfTimeAmplitude(6) ); // BX+1
 
     }
   }

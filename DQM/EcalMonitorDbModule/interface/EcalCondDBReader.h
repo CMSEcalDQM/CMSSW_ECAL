@@ -5,6 +5,10 @@
 #include "DQM/EcalCommon/interface/MESet.h"
 #include "DQMServices/Core/interface/DQMEDHarvester.h"
 #include "OnlineDB/EcalCondDB/interface/EcalCondDBInterface.h"
+#include "Geometry/EcalMapping/interface/EcalMappingRcd.h"
+#include "Geometry/EcalMapping/interface/EcalElectronicsMapping.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+#include "FWCore/Framework/interface/ESHandle.h"
 
 class EcalCondDBReader : public DQMEDHarvester {
 public:
@@ -12,7 +16,12 @@ public:
   ~EcalCondDBReader() override;
 
 private:
-  void dqmEndJob(DQMStore::IBooker &, DQMStore::IGetter &) override;
+  void dqmEndRun(DQMStore::IBooker &, DQMStore::IGetter &, edm::Run const &, edm::EventSetup const &) override;
+
+  EcalElectronicsMapping const *electronicsMap;
+  void setElectronicsMap(edm::EventSetup const &);
+  EcalElectronicsMapping const *GetElectronicsMap();
+  ecaldqm::EcalDQMSetupObjects const getEcalDQMSetupObjects();
 
   // DON'T CHANGE - ORDER MATTERS IN DB
   enum Tasks {
@@ -41,6 +50,7 @@ private:
 
   int verbosity_;
   bool executed_;
+  edm::ESGetToken<EcalElectronicsMapping, EcalMappingRcd> elecMapHandle;
 };
 
 #endif

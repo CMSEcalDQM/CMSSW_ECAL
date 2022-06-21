@@ -18,40 +18,47 @@ namespace ecaldqm
 
     MESet* clone(std::string const& = "") const override;
 
-    void book(DQMStore::IBooker&) override;
+    void book(DQMStore::IBooker &, EcalElectronicsMapping const *) override;
 
-    void fill(DetId const&, double = 1., double = 0., double = 0.) override;
-    void fill(EcalElectronicsId const&, double = 1., double = 0., double = 0.) override;
-    void fill(int, double = 1., double = 1., double = 1.) override;
+    void fill(EcalDQMSetupObjects const, DetId const &, double = 1., double = 0., double = 0.) override;
+    void fill(EcalDQMSetupObjects const, EcalElectronicsId const &, double = 1., double = 0., double = 0.) override;
+    void fill(EcalDQMSetupObjects const, int, double = 1., double = 1., double = 1.) override;
 
-    void setBinContent(DetId const&, double) override;
-    void setBinContent(EcalElectronicsId const&, double) override;
-    void setBinContent(int, double) override;
+    using MESetEcal::setBinContent;
+    void setBinContent(EcalDQMSetupObjects const, DetId const &, double) override;
+    void setBinContent(EcalDQMSetupObjects const, EcalElectronicsId const &, double) override;
+    void setBinContent(EcalDQMSetupObjects const, int, double) override;
 
-    void setBinError(DetId const&, double) override;
-    void setBinError(EcalElectronicsId const&, double) override;
-    void setBinError(int, double) override;
+    using MESetEcal::setBinError;
+    void setBinError(EcalDQMSetupObjects const, DetId const &, double) override;
+    void setBinError(EcalDQMSetupObjects const, EcalElectronicsId const &, double) override;
+    void setBinError(EcalDQMSetupObjects const, int, double) override;
 
-    void setBinEntries(DetId const&, double) override;
-    void setBinEntries(EcalElectronicsId const&, double) override;
-    void setBinEntries(int, double) override;
+    using MESetEcal::setBinEntries;
+    void setBinEntries(EcalDQMSetupObjects const, DetId const &, double) override;
+    void setBinEntries(EcalDQMSetupObjects const, EcalElectronicsId const &, double) override;
+    void setBinEntries(EcalDQMSetupObjects const, int, double) override;
 
-    double getBinContent(DetId const&, int = 0) const override;
-    double getBinContent(EcalElectronicsId const&, int = 0) const override;
-    double getBinContent(int, int = 0) const override;
+    using MESetEcal::getBinContent;
+    double getBinContent(EcalDQMSetupObjects const, DetId const &, int = 0) const override;
+    double getBinContent(EcalDQMSetupObjects const, EcalElectronicsId const &, int = 0) const override;
+    double getBinContent(EcalDQMSetupObjects const, int, int = 0) const override;
 
-    double getBinError(DetId const&, int = 0) const override;
-    double getBinError(EcalElectronicsId const&, int = 0) const override;
-    double getBinError(int, int = 0) const override;
+    using MESetEcal::getBinError;
+    double getBinError(EcalDQMSetupObjects const, DetId const &, int = 0) const override;
+    double getBinError(EcalDQMSetupObjects const, EcalElectronicsId const &, int = 0) const override;
+    double getBinError(EcalDQMSetupObjects const, int, int = 0) const override;
 
-    double getBinEntries(DetId const&, int = 0) const override;
-    double getBinEntries(EcalElectronicsId const&, int = 0) const override;
-    double getBinEntries(int, int) const override;
+    using MESetEcal::getBinEntries;
+    double getBinEntries(EcalDQMSetupObjects const, DetId const &, int = 0) const override;
+    double getBinEntries(EcalDQMSetupObjects const, EcalElectronicsId const &, int = 0) const override;
+    double getBinEntries(EcalDQMSetupObjects const, int, int) const override;
 
-    int findBin(DetId const&) const;
-    int findBin(EcalElectronicsId const&) const;
+    using MESetEcal::findBin;
+    int findBin(EcalDQMSetupObjects const, DetId const &) const;
+    int findBin(EcalDQMSetupObjects const, EcalElectronicsId const &) const;
 
-    void reset(double = 0., double = 0., double = 0.) override;
+    void reset(EcalElectronicsMapping const *, double = 0., double = 0., double = 0.) override;
 
 
   protected:

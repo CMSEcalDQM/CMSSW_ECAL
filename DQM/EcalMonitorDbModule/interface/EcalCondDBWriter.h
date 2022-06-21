@@ -7,14 +7,16 @@
 
 #include "OnlineDB/EcalCondDB/interface/EcalCondDBInterface.h"
 
+
 class EcalCondDBWriter : public DQMEDHarvester {
 public:
   EcalCondDBWriter(edm::ParameterSet const &);
   ~EcalCondDBWriter() override;
 
 private:
+  void beginRun(edm::Run const &, edm::EventSetup const &) override;
   void dqmEndJob(DQMStore::IBooker &, DQMStore::IGetter &) override;
-
+  void dqmEndRun(DQMStore::IBooker &, DQMStore::IGetter &, edm::Run const &, edm::EventSetup const &) override;
   // DON'T CHANGE - ORDER MATTERS IN DB
   enum Tasks {
     Integrity = 0,
@@ -46,6 +48,7 @@ private:
 
   int verbosity_;
   bool executed_;
+  edm::ESGetToken<EcalElectronicsMapping, EcalMappingRcd> elecMapHandle;
 };
 
 #endif
