@@ -11,8 +11,7 @@ from DQM.EcalMonitorTasks.LedTask_cfi import ecalLedTask
 from DQM.EcalMonitorTasks.PNDiodeTask_cfi import ecalPNDiodeTask
 
 from DQMServices.Core.DQMEDAnalyzer import DQMEDAnalyzer
-
-ecalPedestalMonitorTask = DQMEDAnalyzer("EcalDQMonitorTask",
+ecalPedestalMonitorTask = DQMEDAnalyzer('EcalDQMonitorTask',
     moduleName = cms.untracked.string("EcalPedestal Monitor Source"),
     workers = cms.untracked.vstring("PedestalTask"),
     workerParameters = cms.untracked.PSet(
@@ -23,7 +22,7 @@ ecalPedestalMonitorTask = DQMEDAnalyzer("EcalDQMonitorTask",
     resetInterval = cms.untracked.double(2.),
     verbosity = cms.untracked.int32(0)
 )
-ecalTestPulseMonitorTask = DQMEDAnalyzer("EcalDQMonitorTask",
+ecalTestPulseMonitorTask = DQMEDAnalyzer('EcalDQMonitorTask',
     moduleName = cms.untracked.string("EcalTestPulse Monitor Source"),
     workers = cms.untracked.vstring("TestPulseTask"),
     workerParameters = cms.untracked.PSet(
@@ -34,7 +33,7 @@ ecalTestPulseMonitorTask = DQMEDAnalyzer("EcalDQMonitorTask",
     resetInterval = cms.untracked.double(2.),
     verbosity = cms.untracked.int32(0)                                          
 )
-ecalLaserLedMonitorTask = DQMEDAnalyzer("EcalDQMonitorTask",
+ecalLaserLedMonitorTask = DQMEDAnalyzer('EcalDQMonitorTask',
     moduleName = cms.untracked.string("EcalLaserLed Monitor Source"),
     workers = cms.untracked.vstring("LaserTask", "LedTask"),
     workerParameters = cms.untracked.PSet(
@@ -46,7 +45,7 @@ ecalLaserLedMonitorTask = DQMEDAnalyzer("EcalDQMonitorTask",
     resetInterval = cms.untracked.double(2.),
     verbosity = cms.untracked.int32(0)                                         
 )
-ecalPNDiodeMonitorTask = DQMEDAnalyzer("EcalDQMonitorTask",
+ecalPNDiodeMonitorTask = DQMEDAnalyzer('EcalDQMonitorTask',
     moduleName = cms.untracked.string("EcalPNDiode Monitor Source"),
     workers = cms.untracked.vstring("PNDiodeTask"),
     workerParameters = cms.untracked.PSet(

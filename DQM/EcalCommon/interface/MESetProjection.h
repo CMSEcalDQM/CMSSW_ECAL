@@ -18,21 +18,27 @@ namespace ecaldqm
 
     MESet* clone(std::string const& = "") const override;
 
-    void fill(DetId const&, double = 1., double = 0., double = 0.) override;
-    void fill(int, double = 1., double = 1., double = 0.) override;
-    void fill(double, double = 1., double = 0.) override;
+    void fill(EcalDQMSetupObjects const, DetId const &, double = 1., double = 0., double = 0.) override;
+    void fill(EcalDQMSetupObjects const, int, double = 1., double = 1., double = 0.) override;
+    void fill(EcalDQMSetupObjects const, double, double = 1., double = 0.) override;
 
-    void setBinContent(DetId const&, double) override;
+    using MESetEcal::setBinContent;
+    void setBinContent(EcalDQMSetupObjects const, DetId const &, double) override;
 
-    void setBinError(DetId const&, double) override;
+    using MESetEcal::setBinError;
+    void setBinError(EcalDQMSetupObjects const, DetId const &, double) override;
 
-    void setBinEntries(DetId const&, double) override;
+    using MESetEcal::setBinEntries;
+    void setBinEntries(EcalDQMSetupObjects const, DetId const &, double) override;
 
-    double getBinContent(DetId const&, int = 0) const override;
+    using MESetEcal::getBinContent;
+    double getBinContent(EcalDQMSetupObjects const, DetId const &, int = 0) const override;
 
-    double getBinError(DetId const&, int = 0) const override;
+    using MESetEcal::getBinError;
+    double getBinError(EcalDQMSetupObjects const, DetId const &, int = 0) const override;
 
-    double getBinEntries(DetId const&, int = 0) const override;
+    using MESetEcal::getBinEntries;
+    double getBinEntries(EcalDQMSetupObjects const, DetId const &, int = 0) const override;
   };
 }
 

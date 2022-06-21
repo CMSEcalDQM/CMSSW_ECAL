@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-ecalDQMCollectionTags = cms.untracked.PSet(
+ecalDQMCollectionTags = cms.PSet(
     Source = cms.untracked.InputTag("rawDataCollector"),
     EcalRawData = cms.untracked.InputTag("ecalDigis"),
     EBGainErrors = cms.untracked.InputTag("ecalDigis", "EcalIntegrityGainErrors"),

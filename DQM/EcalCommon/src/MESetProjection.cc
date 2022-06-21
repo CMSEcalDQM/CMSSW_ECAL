@@ -43,12 +43,10 @@ namespace ecaldqm
     return copy;
   }
 
-  void
-  MESetProjection::fill(DetId const& _id, double _w/* = 1.*/, double, double)
-  {
+  void MESetProjection::fill(EcalDQMSetupObjects const edso, DetId const &_id, double _w /* = 1.*/, double, double) {
     if(!active_) return;
 
-    unsigned iME(binning::findPlotIndex(otype_, _id));
+    unsigned iME(binning::findPlotIndex(edso.electronicsMap, otype_, _id));
     checkME_(iME);
 
     int subdet(_id.subdetId());
@@ -56,25 +54,25 @@ namespace ecaldqm
     if(subdet == EcalBarrel){
       EBDetId ebid(_id);
       if(btype_ == binning::kProjEta)
-        fill_(iME, eta(ebid), _w, 0.);
+        fill_(iME, eta(ebid, edso.geometry), _w, 0.);
       else if(btype_ == binning::kProjPhi)
         fill_(iME, phi(ebid), _w, 0.);
     }
     else if(subdet == EcalEndcap){
       EEDetId eeid(_id);
       if(btype_ == binning::kProjEta)
-        fill_(iME, eta(eeid), _w, 0.);
+        fill_(iME, eta(eeid, edso.geometry), _w, 0.);
       if(btype_ == binning::kProjPhi){
         fill_(iME, phi(eeid), _w, 0.);
       }
     }
     else if(isEndcapTTId(_id)){
       EcalTrigTowerDetId ttid(_id);
-      std::vector<DetId> ids(getTrigTowerMap()->constituentsOf(ttid));
+      std::vector<DetId> ids(edso.trigtowerMap->constituentsOf(ttid));
       unsigned nIds(ids.size());
       if(btype_ == binning::kProjEta){
         for(unsigned iId(0); iId < nIds; iId++)
-          fill_(iME, eta(EEDetId(ids[iId])), _w / nIds, 0.);
+          fill_(iME, eta(EEDetId(ids[iId]), edso.geometry), _w / nIds, 0.);
       }
       else if(btype_ == binning::kProjPhi){
         for(unsigned iId(0); iId < nIds; iId++)
@@ -95,12 +93,11 @@ namespace ecaldqm
     }
   }
 
-  void
-  MESetProjection::fill(int _subdet, double _x/* = 1.*/, double _w/* = 1.*/, double)
-  {
+  void MESetProjection::fill(
+      EcalDQMSetupObjects const edso, int _subdet, double _x /* = 1.*/, double _w /* = 1.*/, double) {
     if(!active_) return;
 
-    unsigned iME(binning::findPlotIndex(otype_, _subdet, btype_));
+    unsigned iME(binning::findPlotIndex(edso.electronicsMap, otype_, _subdet, btype_));
     checkME_(iME);
 
     if(btype_ == binning::kProjPhi) _x = phi(_x);
@@ -108,9 +105,7 @@ namespace ecaldqm
     mes_[iME]->Fill(_x, _w);
   }
 
-  void
-  MESetProjection::fill(double _x, double _w/* = 1.*/, double)
-  {
+  void MESetProjection::fill(EcalDQMSetupObjects const edso, double _x, double _w /* = 1.*/, double) {
     if(!active_) return;
     if(btype_ != binning::kProjEta) return;
 
@@ -126,24 +121,22 @@ namespace ecaldqm
     mes_[iME]->Fill(_x, _w);
   }
 
-  void
-  MESetProjection::setBinContent(DetId const& _id, double _content)
-  {
+  void MESetProjection::setBinContent(EcalDQMSetupObjects const edso, DetId const &_id, double _content) {
     if(!active_) return;
 
-    unsigned iME(binning::findPlotIndex(otype_, _id));
+    unsigned iME(binning::findPlotIndex(edso.electronicsMap, otype_, _id));
     checkME_(iME);
 
     MonitorElement* me(mes_[iME]);
 
     if(isEndcapTTId(_id)){
       EcalTrigTowerDetId ttid(_id);
-      std::vector<DetId> ids(getTrigTowerMap()->constituentsOf(ttid));
+      std::vector<DetId> ids(edso.trigtowerMap->constituentsOf(ttid));
       unsigned nIds(ids.size());
       std::set<int> bins;
       if(btype_ == binning::kProjEta){
         for(unsigned iId(0); iId < nIds; iId++){
-          int bin(me->getTH1()->FindBin(eta(EEDetId(ids[iId]))));
+          int bin(me->getTH1()->FindBin(eta(EEDetId(ids[iId]), edso.geometry)));
           if(bins.find(bin) != bins.end()) continue;
           me->setBinContent(bin, _content);
         }
@@ -163,13 +156,13 @@ namespace ecaldqm
     if(subdet == EcalBarrel){
       EBDetId ebid(_id);
       if(btype_ == binning::kProjEta)
-        x = eta(ebid);
+        x = eta(ebid, edso.geometry);
       else if(btype_ == binning::kProjPhi)
         x = phi(ebid);
     }
     else if(subdet == EcalEndcap){
       if(btype_ == binning::kProjEta)
-        x = eta(EEDetId(_id));
+        x = eta(EEDetId(_id), edso.geometry);
       else if(btype_ == binning::kProjPhi)
         x = phi(EEDetId(_id));
     }
@@ -190,24 +183,22 @@ namespace ecaldqm
     me->setBinContent(bin, _content);
   }
 
-  void
-  MESetProjection::setBinError(DetId const& _id, double _error)
-  {
+  void MESetProjection::setBinError(EcalDQMSetupObjects const edso, DetId const &_id, double _error) {
     if(!active_) return;
 
-    unsigned iME(binning::findPlotIndex(otype_, _id));
+    unsigned iME(binning::findPlotIndex(edso.electronicsMap, otype_, _id));
     checkME_(iME);
 
     MonitorElement* me(mes_[iME]);
 
     if(isEndcapTTId(_id)){
       EcalTrigTowerDetId ttid(_id);
-      std::vector<DetId> ids(getTrigTowerMap()->constituentsOf(ttid));
+      std::vector<DetId> ids(edso.trigtowerMap->constituentsOf(ttid));
       unsigned nIds(ids.size());
       std::set<int> bins;
       if(btype_ == binning::kProjEta){
         for(unsigned iId(0); iId < nIds; iId++){
-          int bin(me->getTH1()->FindBin(eta(EEDetId(ids[iId]))));
+          int bin(me->getTH1()->FindBin(eta(EEDetId(ids[iId]), edso.geometry)));
           if(bins.find(bin) != bins.end()) continue;
           me->setBinError(bin, _error);
         }
@@ -227,13 +218,13 @@ namespace ecaldqm
     if(subdet == EcalBarrel){
       EBDetId ebid(_id);
       if(btype_ == binning::kProjEta)
-        x = eta(ebid);
+        x = eta(ebid, edso.geometry);
       else if(btype_ == binning::kProjPhi)
         x = phi(ebid);
     }
     else if(subdet == EcalEndcap){
       if(btype_ == binning::kProjEta)
-        x = eta(EEDetId(_id));
+        x = eta(EEDetId(_id), edso.geometry);
       else if(btype_ == binning::kProjPhi)
         x = phi(EEDetId(_id));
      }
@@ -254,24 +245,22 @@ namespace ecaldqm
     me->setBinError(bin, _error);
   }
 
-  void
-  MESetProjection::setBinEntries(DetId const& _id, double _entries)
-  {
+  void MESetProjection::setBinEntries(EcalDQMSetupObjects const edso, DetId const &_id, double _entries) {
     if(!active_) return;
 
-    unsigned iME(binning::findPlotIndex(otype_, _id));
+    unsigned iME(binning::findPlotIndex(edso.electronicsMap, otype_, _id));
     checkME_(iME);
 
     MonitorElement* me(mes_[iME]);
 
     if(isEndcapTTId(_id)){
       EcalTrigTowerDetId ttid(_id);
-      std::vector<DetId> ids(getTrigTowerMap()->constituentsOf(ttid));
+      std::vector<DetId> ids(edso.trigtowerMap->constituentsOf(ttid));
       unsigned nIds(ids.size());
       std::set<int> bins;
       if(btype_ == binning::kProjEta){
         for(unsigned iId(0); iId < nIds; iId++){
-          int bin(me->getTH1()->FindBin(eta(EEDetId(ids[iId]))));
+          int bin(me->getTH1()->FindBin(eta(EEDetId(ids[iId]), edso.geometry)));
           if(bins.find(bin) != bins.end()) continue;
           me->setBinEntries(bin, _entries);
         }
@@ -291,13 +280,13 @@ namespace ecaldqm
     if(subdet == EcalBarrel){
       EBDetId ebid(_id);
       if(btype_ == binning::kProjEta)
-        x = eta(ebid);
+        x = eta(ebid, edso.geometry);
       else if(btype_ == binning::kProjPhi)
         x = phi(ebid);
     }
     else if(subdet == EcalEndcap){
       if(btype_ == binning::kProjEta)
-        x = eta(EEDetId(_id));
+        x = eta(EEDetId(_id), edso.geometry);
       else if(btype_ == binning::kProjPhi)
         x = phi(EEDetId(_id));
     }
@@ -318,21 +307,19 @@ namespace ecaldqm
     me->setBinEntries(bin, _entries);
   }
 
-  double
-  MESetProjection::getBinContent(DetId const& _id, int) const
-  {
+  double MESetProjection::getBinContent(EcalDQMSetupObjects const edso, DetId const &_id, int) const {
     if(!active_) return 0.;
 
-    unsigned iME(binning::findPlotIndex(otype_, _id));
+    unsigned iME(binning::findPlotIndex(edso.electronicsMap, otype_, _id));
     checkME_(iME);
 
     MonitorElement* me(mes_[iME]);
 
     if(isEndcapTTId(_id)){
       EcalTrigTowerDetId ttid(_id);
-      std::vector<DetId> ids(getTrigTowerMap()->constituentsOf(ttid));
+      std::vector<DetId> ids(edso.trigtowerMap->constituentsOf(ttid));
       if(btype_ == binning::kProjEta){
-        int bin(me->getTH1()->FindBin(eta(EEDetId(ids[0]))));
+        int bin(me->getTH1()->FindBin(eta(EEDetId(ids[0]), edso.geometry)));
         return me->getBinContent(bin);
       }
       else if(btype_ == binning::kProjPhi){
@@ -347,13 +334,13 @@ namespace ecaldqm
     if(subdet == EcalBarrel){
       EBDetId ebid(_id);
       if(btype_ == binning::kProjEta)
-        x = eta(ebid);
+        x = eta(ebid, edso.geometry);
       else if(btype_ == binning::kProjPhi)
         x = phi(ebid);
     }
     else if(subdet == EcalEndcap){
       if(btype_ == binning::kProjEta)
-        x = eta(EEDetId(_id));
+        x = eta(EEDetId(_id), edso.geometry);
       else if(btype_ == binning::kProjPhi)
         x = phi(EEDetId(_id));
     }
@@ -374,21 +361,19 @@ namespace ecaldqm
     return me->getBinContent(bin);
   }
 
-  double
-  MESetProjection::getBinError(DetId const& _id, int) const
-  {
+  double MESetProjection::getBinError(EcalDQMSetupObjects const edso, DetId const &_id, int) const {
     if(!active_) return 0.;
 
-    unsigned iME(binning::findPlotIndex(otype_, _id));
+    unsigned iME(binning::findPlotIndex(edso.electronicsMap, otype_, _id));
     checkME_(iME);
 
     MonitorElement* me(mes_[iME]);
 
     if(isEndcapTTId(_id)){
       EcalTrigTowerDetId ttid(_id);
-      std::vector<DetId> ids(getTrigTowerMap()->constituentsOf(ttid));
+      std::vector<DetId> ids(edso.trigtowerMap->constituentsOf(ttid));
       if(btype_ == binning::kProjEta){
-        int bin(me->getTH1()->FindBin(eta(EEDetId(ids[0]))));
+        int bin(me->getTH1()->FindBin(eta(EEDetId(ids[0]), edso.geometry)));
         return me->getBinError(bin);
       }
       else if(btype_ == binning::kProjPhi){
@@ -403,13 +388,13 @@ namespace ecaldqm
     if(subdet == EcalBarrel){
       EBDetId ebid(_id);
       if(btype_ == binning::kProjEta)
-        x = eta(ebid);
+        x = eta(ebid, edso.geometry);
       else if(btype_ == binning::kProjPhi)
         x = phi(ebid);
     }
     else if(subdet == EcalEndcap){
       if(btype_ == binning::kProjEta)
-        x = eta(EEDetId(_id));
+        x = eta(EEDetId(_id), edso.geometry);
       else if(btype_ == binning::kProjPhi)
         x = phi(EEDetId(_id));
     }
@@ -430,21 +415,19 @@ namespace ecaldqm
     return me->getBinError(bin);
   }
 
-  double
-  MESetProjection::getBinEntries(DetId const& _id, int) const
-  {
+  double MESetProjection::getBinEntries(EcalDQMSetupObjects const edso, DetId const &_id, int) const {
     if(!active_) return 0.;
 
-    unsigned iME(binning::findPlotIndex(otype_, _id));
+    unsigned iME(binning::findPlotIndex(edso.electronicsMap, otype_, _id));
     checkME_(iME);
 
     MonitorElement* me(mes_[iME]);
 
     if(isEndcapTTId(_id)){
       EcalTrigTowerDetId ttid(_id);
-      std::vector<DetId> ids(getTrigTowerMap()->constituentsOf(ttid));
+      std::vector<DetId> ids(edso.trigtowerMap->constituentsOf(ttid));
       if(btype_ == binning::kProjEta){
-        int bin(me->getTH1()->FindBin(eta(EEDetId(ids[0]))));
+        int bin(me->getTH1()->FindBin(eta(EEDetId(ids[0]), edso.geometry)));
         return me->getBinEntries(bin);
       }
       else if(btype_ == binning::kProjPhi){
@@ -459,13 +442,13 @@ namespace ecaldqm
     if(subdet == EcalBarrel){
       EBDetId ebid(_id);
       if(btype_ == binning::kProjEta)
-        x = eta(ebid);
+        x = eta(ebid, edso.geometry);
       else if(btype_ == binning::kProjPhi)
         x = phi(ebid);
     }
     else if(subdet == EcalEndcap){
       if(btype_ == binning::kProjEta)
-        x = eta(EEDetId(_id));
+        x = eta(EEDetId(_id), edso.geometry);
       else if(btype_ == binning::kProjPhi)
         x = phi(EEDetId(_id));
     }

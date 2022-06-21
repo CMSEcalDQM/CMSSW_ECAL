@@ -16,11 +16,7 @@ namespace ecaldqm
 
   const double etaBound(1.479);
 
-  unsigned
-  dccId(const DetId &_id)
-  {
-    EcalElectronicsMapping const* map(getElectronicsMap());
-
+  unsigned dccId(const DetId &_id, const EcalElectronicsMapping *map) {
     unsigned subdet(_id.subdetId());
 
     if(subdet == EcalBarrel) return map->DCCid(EBDetId(_id));
@@ -59,11 +55,7 @@ namespace ecaldqm
     return (itr - memDCC.begin());
   }
 
-  unsigned
-  tccId(const DetId &_id)
-  {
-    EcalElectronicsMapping const* map(getElectronicsMap());
-
+  unsigned tccId(const DetId &_id, const EcalElectronicsMapping *map) {
     unsigned subdet(_id.subdetId());
 
     if(subdet == EcalBarrel) return map->TCCid(EBDetId(_id));
@@ -78,23 +70,21 @@ namespace ecaldqm
     return 0;
   }
 
-  unsigned
-  tccId(const EcalElectronicsId &_id)
-  {
-    return getElectronicsMap()->getTriggerElectronicsId(_id).tccId();
+  unsigned tccId(const EcalElectronicsId &_id, const EcalElectronicsMapping *map) {
+    return map->getTriggerElectronicsId(_id).tccId();
   }
 
 
   unsigned
-  towerId(const DetId &_id)
+  towerId(const DetId &_id, const EcalElectronicsMapping *map)
   {
     unsigned subdet(_id.subdetId());
 
     if(subdet == EcalBarrel) return EBDetId(_id).tower().iTT();
     else if(subdet == EcalTriggerTower) return EcalTrigTowerDetId(_id).iTT();
     else if(subdet == EcalEndcap){
-      if(isEcalScDetId(_id)) return getElectronicsMap()->getDCCandSC(EcalScDetId(_id)).second;
-      else return getElectronicsMap()->getElectronicsId(EEDetId(_id)).towerId();
+      if(isEcalScDetId(_id)) return map->getDCCandSC(EcalScDetId(_id)).second;
+      else return map->getElectronicsId(EEDetId(_id)).towerId();
     }
 
     throw cms::Exception("InvalidDetId") << "EcalDQMCommonUtils::towerId(" << std::hex << uint32_t(_id) << ")" << std::endl;
@@ -109,37 +99,35 @@ namespace ecaldqm
   }
 
   unsigned
-  ttId(const DetId& _id)
+  ttId(const DetId& _id, const EcalElectronicsMapping *map)
   {
     unsigned subdet(_id.subdetId());
 
     if(subdet == EcalBarrel)
       return EBDetId(_id).tower().iTT();
     else if(subdet == EcalTriggerTower)
-      return getElectronicsMap()->iTT(EcalTrigTowerDetId(_id));
+      return map->iTT(EcalTrigTowerDetId(_id));
     else if(subdet == EcalEndcap && !isEcalScDetId(_id))
-      return getElectronicsMap()->getTriggerElectronicsId(_id).ttId();
+      return map->getTriggerElectronicsId(_id).ttId();
 
     throw cms::Exception("InvalidDetId") << "EcalDQMCommonUtils::ttId(" << std::hex << uint32_t(_id) << ")" << std::endl;
 
     return 0;
   }
 
-  unsigned
-  ttId(const EcalElectronicsId &_id)
-  {
-    return getElectronicsMap()->getTriggerElectronicsId(_id).ttId();
+  unsigned ttId(const EcalElectronicsId &_id, const EcalElectronicsMapping *map) {
+    return map->getTriggerElectronicsId(_id).ttId();
   }
 
   unsigned
-  rtHalf(DetId const& _id)
+  rtHalf(DetId const& _id, const EcalElectronicsMapping *electronicsMap)
   {
     if(_id.subdetId() == EcalBarrel){
       int ic(EBDetId(_id).ic());
       if((ic - 1) / 20 > 4 && (ic - 1) % 20 < 10) return 1;
     }
     else{
-      unsigned iDCC(dccId(_id) - 1);
+      unsigned iDCC(dccId(_id, electronicsMap) - 1);
       if((iDCC == kEEm05 || iDCC == kEEp05) && EEDetId(_id).ix() > 50) return 1;
     }
 
@@ -227,17 +215,11 @@ namespace ecaldqm
     return 0;
   }
 
-  double
-  eta(const EBDetId& _ebid)
-  {
+  double eta(const EBDetId &_ebid, const CaloGeometry *geometry) {
     return _ebid.approxEta() + (_ebid.zside() < 0 ? 0.5 : -0.5) * EBDetId::crystalUnitToEta;
   }
 
-  double
-  eta(const EEDetId& _id)
-  {
-    return getGeometry()->getPosition(_id).eta();
-  }
+  double eta(const EEDetId &_id, const CaloGeometry *geometry) { return geometry->getPosition(_id).eta(); }
 
   double
   phi(EBDetId const& _ebid)
@@ -448,117 +430,5 @@ namespace ecaldqm
     else if((_dccId == 8 || _dccId == 53) && _towerId >= 18 && _towerId <= 24) return false;
     else if(_dccId <= kEEmHigh + 1 || _dccId >= kEEpLow + 1) return _towerId <= nSuperCrystals(_dccId);
     else return _towerId <= 68;
-  }
-
-
-  /*
-    Note on concurrency compatibility:           
-    Call to getters bellow must always happen after
-    EcalDQMonitor::ecaldqmGetSetupObjects or equivalent.
-    As long as check-set-get are executed in this order
-    within each thread, the following functions are
-    thread-safe.
-  */
-
-  std::mutex mapMutex;
-  EcalElectronicsMapping const* electronicsMap(0);
-  EcalTrigTowerConstituentsMap const* trigtowerMap(0);
-  CaloGeometry const* geometry(0);
-  CaloTopology const* topology(0);
-
-  bool
-  checkElectronicsMap(bool _throw/* = true*/)
-  {
-    std::lock_guard<std::mutex> lock(mapMutex);
-    if(electronicsMap) return true;
-    if(_throw) throw cms::Exception("InvalidCall") << "ElectronicsMapping not initialized";
-    return false;
-  }
-
-  EcalElectronicsMapping const*
-  getElectronicsMap()
-  {
-    if(!electronicsMap) checkElectronicsMap();
-    return electronicsMap;
-  }
-
-  void
-  setElectronicsMap(EcalElectronicsMapping const* _map)
-  {
-    std::lock_guard<std::mutex> lock(mapMutex);
-    if(electronicsMap) return;
-    electronicsMap = _map;
-  }
-
-  bool
-  checkTrigTowerMap(bool _throw/* = true*/)
-  {
-    std::lock_guard<std::mutex> lock(mapMutex);
-    if(trigtowerMap) return true;
-    if(_throw) throw cms::Exception("InvalidCall") << "TrigTowerConstituentsMap not initialized";
-    return false;
-  }
-
-  EcalTrigTowerConstituentsMap const*
-  getTrigTowerMap()
-  {
-    if(!trigtowerMap) checkTrigTowerMap();
-    return trigtowerMap;
-  }
-
-  void
-  setTrigTowerMap(EcalTrigTowerConstituentsMap const* _map)
-  {
-    std::lock_guard<std::mutex> lock(mapMutex);
-    if(trigtowerMap) return;
-    trigtowerMap = _map;
-  }
-
-  bool
-  checkGeometry(bool _throw/* = true*/)
-  {
-    std::lock_guard<std::mutex> lock(mapMutex);
-    if(geometry) return true;
-    if(_throw) throw cms::Exception("InvalidCall") << "CaloGeometry not initialized";
-    return false;
-  }
-
-  CaloGeometry const*
-  getGeometry()
-  {
-    if(!geometry) checkGeometry();
-    return geometry;
-  }
-
-  void
-  setGeometry(CaloGeometry const* _geom)
-  {
-    std::lock_guard<std::mutex> lock(mapMutex);
-    if(geometry) return;
-    geometry = _geom;
-  }
-
-  bool
-  checkTopology(bool _throw/* = true*/)
-  {
-    std::lock_guard<std::mutex> lock(mapMutex);
-    if(topology) return true;
-    if(_throw) throw cms::Exception("InvalidCall") << "CaloTopology not initialized";
-    return false;
-  }
-
-  CaloTopology const*
-  getTopology()
-  {
-    if(!topology) checkTopology();
-    return topology;
-  }
-
-  void
-  setTopology(CaloTopology const* _geom)
-  {
-    std::lock_guard<std::mutex> lock(mapMutex);
-    if(topology) return;
-    topology = _geom;
   }
 }

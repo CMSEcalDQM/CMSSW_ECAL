@@ -41,28 +41,28 @@ namespace ecaldqm
     MESet const& sTowerId(sources_.at("TowerId"));
     MESet const& sBlockSize(sources_.at("BlockSize"));
 
-    MESet::iterator qEnd(meQuality.end());
-    MESet::const_iterator occItr(sOccupancy);
-    for(MESet::iterator qItr(meQuality.beginChannel()); qItr != qEnd; qItr.toNextChannel()){
+    MESet::iterator qEnd(meQuality.end(GetElectronicsMap()));
+    MESet::const_iterator occItr(GetElectronicsMap(), sOccupancy);
+    for(MESet::iterator qItr(meQuality.beginChannel(GetElectronicsMap())); qItr != qEnd; qItr.toNextChannel(GetElectronicsMap())){
 
       occItr = qItr;
 
       DetId id(qItr->getId());
 
-      bool doMask(meQuality.maskMatches(id, mask, statusManager_));
+      bool doMask(meQuality.maskMatches(id, mask, statusManager_, GetTrigTowerMap()));
 
       float entries(occItr->getBinContent());
 
-      float gain(sGain.getBinContent(id));
-      float chid(sChId.getBinContent(id));
-      float gainswitch(sGainSwitch.getBinContent(id));
+      float gain(sGain.getBinContent(getEcalDQMSetupObjects(), id));
+      float chid(sChId.getBinContent(getEcalDQMSetupObjects(), id));
+      float gainswitch(sGainSwitch.getBinContent(getEcalDQMSetupObjects(), id));
 
-      float towerid(sTowerId.getBinContent(id));
-      float blocksize(sBlockSize.getBinContent(id));
+      float towerid(sTowerId.getBinContent(getEcalDQMSetupObjects(), id));
+      float blocksize(sBlockSize.getBinContent(getEcalDQMSetupObjects(), id));
 
       if(entries + gain + chid + gainswitch + towerid + blocksize < 1.){
         qItr->setBinContent(doMask ? kMUnknown : kUnknown);
-        meQualitySummary.setBinContent(id, doMask ? kMUnknown : kUnknown);
+        meQualitySummary.setBinContent(getEcalDQMSetupObjects(), id, doMask ? kMUnknown : kUnknown);
         continue;
       }
 
@@ -70,11 +70,11 @@ namespace ecaldqm
 
       if(chErr > errFractionThreshold_){
         qItr->setBinContent(doMask ? kMBad : kBad);
-        meQualitySummary.setBinContent(id, doMask ? kMBad : kBad);
+        meQualitySummary.setBinContent(getEcalDQMSetupObjects(), id, doMask ? kMBad : kBad);
       }
       else{
         qItr->setBinContent(doMask ? kMGood : kGood);
-        meQualitySummary.setBinContent(id, doMask ? kMGood : kGood);
+        meQualitySummary.setBinContent(getEcalDQMSetupObjects(), id, doMask ? kMGood : kGood);
       }
     }
 /*
@@ -94,7 +94,7 @@ namespace ecaldqm
       EcalTrigTowerDetId ttid(EcalTrigTowerDetId::detIdFromDenseIndex(iTT));
       bool isMasked( sTTMaskMapAll.getBinContent(ttid) > 0. );
       bool hasTTF4( sTTFlags4.getBinContent(ttid) > 0. );
-      if ( isMasked ) { 
+      if ( isMasked ) {
         if ( hasTTF4 )
           meTTF4vMask.setBinContent( ttid,12 ); // Masked, has TTF4
         else
@@ -102,9 +102,9 @@ namespace ecaldqm
       } else {
         if ( hasTTF4 )
           meTTF4vMask.setBinContent( ttid,13 ); // not Masked, has TTF4
-      }   
+      }
     } // TT loop
-    // ==================== // 
+    // ==================== //
 */
   } // producePlots()
 

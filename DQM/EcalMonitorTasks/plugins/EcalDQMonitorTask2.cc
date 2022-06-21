@@ -24,7 +24,8 @@ EcalDQMonitorTask::runOnCollection(edm::Event const& _evt, ecaldqm::Collections 
   if(!_evt.getByToken(collectionTokens_[_col], hndl)){
     if(!allowMissingCollections_)
       throw cms::Exception("ObjectNotFound") << moduleName_ << "::runOnCollection: " << ecaldqm::collectionName[_col] << " does not exist";
-    edm::LogWarning("EcalDQM") << moduleName_ << "::runOnCollection: " << ecaldqm::collectionName[_col] << " does not exist";
+    //Temporarily disabling to not fill the log file
+    //edm::LogWarning("EcalDQM") << moduleName_ << "::runOnCollection: " << ecaldqm::collectionName[_col] << " does not exist";
     return;
   }
 

@@ -34,7 +34,7 @@ namespace ecaldqm
     _dependencies.push_back(Dependency(kEBBasicCluster, kEBRecHit));
     _dependencies.push_back(Dependency(kEEBasicCluster, kEERecHit));
   }
-  
+
   bool
   RecoSummaryTask::filterRunType(short const* _runType)
   {
@@ -57,7 +57,7 @@ namespace ecaldqm
     eeHits_ = 0;
   }
 
-  void 
+  void
   RecoSummaryTask::runOnRecHits(EcalRecHitCollection const& _hits, Collections _collection)
   {
     bool isBarrel(_collection == kEBRecHit);
@@ -70,9 +70,9 @@ namespace ecaldqm
 
     double maxE[2] = {-1. -1};
     int subdet(isBarrel ? EcalBarrel : EcalEndcap);
-    
+
     for(EcalRecHitCollection::const_iterator hitItr(_hits.begin()); hitItr != _hits.end(); ++hitItr){
-      meRecoFlag.fill(subdet, hitItr->recoFlag());
+      meRecoFlag.fill(getEcalDQMSetupObjects(), subdet, hitItr->recoFlag());
       float energy(hitItr->energy());
 
       int signedSubdet;
@@ -85,7 +85,7 @@ namespace ecaldqm
         if(energy > 3.){
           EBDetId ebId(hitItr->id());
           if(ebId.ieta() != 85)
-            meSwissCross->fill(EcalTools::swissCross(ebId, _hits, 0.));
+            meSwissCross->fill(getEcalDQMSetupObjects(), EcalTools::swissCross(ebId, _hits, 0.));
         }
 
         if(energy > maxE[0]) maxE[0] = energy;
@@ -105,25 +105,25 @@ namespace ecaldqm
       }
 
       if(energy > rechitThreshold){
-        meChi2.fill(signedSubdet, hitItr->chi2());
-        meTime.fill(signedSubdet, hitItr->time());
+        meChi2.fill(getEcalDQMSetupObjects(), signedSubdet, hitItr->chi2());
+        meTime.fill(getEcalDQMSetupObjects(), signedSubdet, hitItr->time());
       }
     }
 
     if(isBarrel){
-      meEnergyMax.fill(EcalBarrel, maxE[0]);
+      meEnergyMax.fill(getEcalDQMSetupObjects(), EcalBarrel, maxE[0]);
 
       ebHits_ = &_hits;
     }
     else{
-      meEnergyMax.fill(-EcalEndcap, maxE[0]);
-      meEnergyMax.fill(EcalEndcap, maxE[1]);
+      meEnergyMax.fill(getEcalDQMSetupObjects(), -EcalEndcap, maxE[0]);
+      meEnergyMax.fill(getEcalDQMSetupObjects(), EcalEndcap, maxE[1]);
 
       eeHits_ = &_hits;
     }
   }
 
-  void 
+  void
   RecoSummaryTask::runOnReducedRecHits(EcalRecHitCollection const& _hits, Collections _collections)
   {
     MESet& meRecoFlag(MEs_.at("RecoFlagReduced"));
@@ -131,7 +131,7 @@ namespace ecaldqm
     int subdet(_collections == kEBReducedRecHit ? EcalBarrel : EcalEndcap);
 
     for(EcalRecHitCollection::const_iterator hitItr(_hits.begin()); hitItr != _hits.end(); ++hitItr)
-      meRecoFlag.fill(subdet, hitItr->recoFlag());
+      meRecoFlag.fill(getEcalDQMSetupObjects(), subdet, hitItr->recoFlag());
   }
 
   void
@@ -156,7 +156,7 @@ namespace ecaldqm
         if(!isBarrel && haf[iH].first.subdetId() != EcalEndcap) continue;
         EcalRecHitCollection::const_iterator hItr(hitCol->find(haf[iH].first));
         if(hItr == hitCol->end()) continue;
-        meRecoFlag.fill(subdet, hItr->recoFlag());
+        meRecoFlag.fill(getEcalDQMSetupObjects(), subdet, hItr->recoFlag());
       }
     }
   }

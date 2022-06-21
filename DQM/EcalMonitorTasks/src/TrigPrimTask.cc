@@ -7,9 +7,6 @@
 #include "FWCore/Common/interface/TriggerResultsByName.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CondFormats/DataRecord/interface/EcalTPGTowerStatusRcd.h"
-#include "CondFormats/DataRecord/interface/EcalTPGStripStatusRcd.h"
-
 #include <iomanip>
 
 namespace ecaldqm
@@ -53,12 +50,13 @@ namespace ecaldqm
     // Read-in Status records:
     // Status records stay constant over run so they are read-in only once here
     // but filled by LS in runOnRealTPs() because MEs are not yet booked at beginRun()
-    _es.get<EcalTPGTowerStatusRcd>().get( TTStatusRcd );
-    _es.get<EcalTPGStripStatusRcd>().get( StripStatusRcd );
+     TTStatus = &_es.getData(TTStatusRcd_);
+     StripStatus = &_es.getData(StripStatusRcd_);
+
   }
 
   void
-  TrigPrimTask::beginEvent(edm::Event const& _evt, edm::EventSetup const&  _es)
+  TrigPrimTask::beginEvent(edm::Event const& _evt, edm::EventSetup const&  _es, bool const&, bool&)
   {
     using namespace std;
 
@@ -72,15 +70,8 @@ namespace ecaldqm
     int* pBin(std::upper_bound(bxBinEdges_, bxBinEdges_ + nBXBins + 1, _evt.bunchCrossing()));
     bxBin_ = static_cast<int>(pBin - bxBinEdges_) - 0.5;
 
-    edm::ESHandle<EcalTPGTowerStatus> TTStatusRcd_;
-    _es.get<EcalTPGTowerStatusRcd>().get(TTStatusRcd_);
-    const EcalTPGTowerStatus * TTStatus=TTStatusRcd_.product();
-    const EcalTPGTowerStatusMap &towerMap=TTStatus->getMap();
-
-    edm::ESHandle<EcalTPGStripStatus> StripStatusRcd_;
-    _es.get<EcalTPGStripStatusRcd>().get(StripStatusRcd_);
-    const EcalTPGStripStatus * StripStatus=StripStatusRcd_.product();
-    const EcalTPGStripStatusMap &stripMap=StripStatus->getMap();
+    const EcalTPGTowerStatusMap& towerMap = TTStatus->getMap();
+    const EcalTPGStripStatusMap& stripMap = StripStatus->getMap();
 
     MESet& meTTMaskMap(MEs_.at("TTMaskMap"));
 
@@ -90,20 +81,20 @@ namespace ecaldqm
        {
          const EcalTrigTowerDetId  ttid((*ttItr).first);
          //if(ttid.subDet() == EcalBarrel)
-            meTTMaskMap.fill(ttid,1);
-       }//masked   
+            meTTMaskMap.fill(getEcalDQMSetupObjects(), ttid,1);
+       }//masked
     }//loop on towers
-  
+
     for(EcalTPGStripStatusMap::const_iterator stItr(stripMap.begin()); stItr != stripMap.end(); ++stItr){
 
        if ((*stItr).second > 0)
        {
          const EcalElectronicsId stid((*stItr).first);
          //if(stid.subdet() == EcalEndcap);
-            meTTMaskMap.fill(stid,1);
-       }//masked   
+            meTTMaskMap.fill(getEcalDQMSetupObjects(), stid,1);
+       }//masked
     }//loop on pseudo-strips
-  
+
     //     if(HLTCaloPath_.size() || HLTMuonPath_.size()){
     //       edm::TriggerResultsByName results(_evt.triggerResultsByName("HLT"));
     //       if(!results.isValid()) results = _evt.triggerResultsByName("RECO");
@@ -165,11 +156,15 @@ namespace ecaldqm
   TrigPrimTask::runOnDigis(DigiCollection const& _digis)
   {
     for(typename DigiCollection::const_iterator digiItr(_digis.begin()); digiItr != _digis.end(); ++digiItr){
-      EcalTrigTowerDetId ttid(getTrigTowerMap()->towerOf(digiItr->id()));
+      EcalTrigTowerDetId ttid(GetTrigTowerMap()->towerOf(digiItr->id()));
       towerReadouts_[ttid.rawId()]++;
     }
   }
-
+   void TrigPrimTask::setTokens(edm::ConsumesCollector& _collector) { 
+    TTStatusRcd_ = _collector.esConsumes<edm::Transition::BeginRun>();
+    StripStatusRcd_ = _collector.esConsumes<edm::Transition::BeginRun>();
+  }
+ 
   void
   TrigPrimTask::runOnRealTPs(EcalTrigPrimDigiCollection const& _tps)
   {
@@ -200,24 +195,24 @@ namespace ecaldqm
           nTP[1] += 1.;
         else
           nTP[2] += 2.;
-        meEtVsBx.fill(ttid, bxBin_, et);
+        meEtVsBx.fill(getEcalDQMSetupObjects(), ttid, bxBin_, et);
       }
 
-      meEtReal.fill(ttid, et);
-      meEtRealMap.fill(ttid, et);
-      meEtSummary.fill(ttid, et);
+      meEtReal.fill(getEcalDQMSetupObjects(), ttid, et);
+      meEtRealMap.fill(getEcalDQMSetupObjects(), ttid, et);
+      meEtSummary.fill(getEcalDQMSetupObjects(), ttid, et);
 
       int interest(tpItr->ttFlag() & 0x3);
 
       switch(interest){
       case 0:
-        meLowIntMap.fill(ttid);
+        meLowIntMap.fill(getEcalDQMSetupObjects(), ttid);
         break;
       case 1:
-        meMedIntMap.fill(ttid);
+        meMedIntMap.fill(getEcalDQMSetupObjects(), ttid);
         break;
       case 3:
-        meHighIntMap.fill(ttid);
+        meHighIntMap.fill(getEcalDQMSetupObjects(), ttid);
         break;
       default:
         break;
@@ -225,19 +220,19 @@ namespace ecaldqm
 
       // Fill TT Flag MEs
       float ttF( tpItr->ttFlag() );
-      meTTFlags.fill( ttid, ttF );
+      meTTFlags.fill(getEcalDQMSetupObjects(),  ttid, ttF );
       // Monitor occupancy of TTF=4
       // which contains info about TT auto-masking
       if ( ttF == 4. )
-        meTTFlags4.fill( ttid );
+        meTTFlags4.fill(getEcalDQMSetupObjects(),  ttid );
 
-      if((interest == 1 || interest == 3) && towerReadouts_[ttid.rawId()] != getTrigTowerMap()->constituentsOf(ttid).size())
-        meTTFMismatch.fill(ttid);
+      if((interest == 1 || interest == 3) && towerReadouts_[ttid.rawId()] != GetTrigTowerMap()->constituentsOf(ttid).size())
+        meTTFMismatch.fill(getEcalDQMSetupObjects(), ttid);
     }
 
-    meOccVsBx.fill( EcalBarrel, bxBin_, nTP[0]);
-    meOccVsBx.fill(-EcalEndcap, bxBin_, nTP[1]);
-    meOccVsBx.fill( EcalEndcap, bxBin_, nTP[2]);
+    meOccVsBx.fill(getEcalDQMSetupObjects(),  EcalBarrel, bxBin_, nTP[0]);
+    meOccVsBx.fill(getEcalDQMSetupObjects(), -EcalEndcap, bxBin_, nTP[1]);
+    meOccVsBx.fill(getEcalDQMSetupObjects(),  EcalEndcap, bxBin_, nTP[2]);
 
     // Set TT/Strip Masking status in Ecal3P view
     // Status Records are read-in at beginRun() but filled here
@@ -245,24 +240,22 @@ namespace ecaldqm
     MESet& meTTMaskMapAll(MEs_.at("TTMaskMapAll"));
 
     // Fill from TT Status Rcd
-    const EcalTPGTowerStatus *TTStatus( TTStatusRcd.product() );
-    const EcalTPGTowerStatusMap &TTStatusMap( TTStatus->getMap() );
+    const EcalTPGTowerStatusMap& TTStatusMap(TTStatus->getMap());
     for( EcalTPGTowerStatusMap::const_iterator ttItr(TTStatusMap.begin()); ttItr != TTStatusMap.end(); ++ttItr ){
       const EcalTrigTowerDetId ttid( ttItr->first );
       if ( ttItr->second > 0 )
-        meTTMaskMapAll.setBinContent( ttid,1 ); // TT is masked
+        meTTMaskMapAll.setBinContent(getEcalDQMSetupObjects(), ttid,1 ); // TT is masked
     } // TTs
 
     // Fill from Strip Status Rcd
-    const EcalTPGStripStatus *StripStatus( StripStatusRcd.product() );
-    const EcalTPGStripStatusMap &StripStatusMap( StripStatus->getMap() );
+    const EcalTPGStripStatusMap& StripStatusMap(StripStatus->getMap());
     for( EcalTPGStripStatusMap::const_iterator stItr(StripStatusMap.begin()); stItr != StripStatusMap.end(); ++stItr ){
       const EcalTriggerElectronicsId stid( stItr->first );
       // Since ME has kTriggerTower binning, convert to EcalTrigTowerDetId first
       // In principle, setBinContent() could be implemented for EcalTriggerElectronicsId class as well
-      const EcalTrigTowerDetId ttid( getElectronicsMap()->getTrigTowerDetId(stid.tccId(), stid.ttId()) );
+      const EcalTrigTowerDetId ttid( GetElectronicsMap()->getTrigTowerDetId(stid.tccId(), stid.ttId()) );
       if ( stItr->second > 0 )
-        meTTMaskMapAll.setBinContent( ttid,1 ); // PseudoStrip is masked
+        meTTMaskMapAll.setBinContent(getEcalDQMSetupObjects(), ttid,1 ); // PseudoStrip is masked
     } // PseudoStrips
 
   } // TrigPrimTask::runOnRealTPs()
@@ -292,9 +285,9 @@ namespace ecaldqm
         }
       }
 
-      meEtMaxEmul.fill(ttid, maxEt);
+      meEtMaxEmul.fill(getEcalDQMSetupObjects(), ttid, maxEt);
       if(maxEt > 0.)
-        meEmulMaxIndex.fill(ttid, iMax);
+        meEmulMaxIndex.fill(getEcalDQMSetupObjects(), ttid, iMax);
 
       bool match(true);
       bool matchFG(true);
@@ -307,7 +300,7 @@ namespace ecaldqm
         if(realEt > 0){
 
           int interest(realItr->ttFlag() & 0x3);
-          if((interest == 1 || interest == 3) && towerReadouts_[ttid.rawId()] == getTrigTowerMap()->constituentsOf(ttid).size()){
+          if((interest == 1 || interest == 3) && towerReadouts_[ttid.rawId()] == GetTrigTowerMap()->constituentsOf(ttid).size()){
 
             if(et != realEt) match = false;
             if(tpItr->fineGrain() != realItr->fineGrain()) matchFG = false;
@@ -320,7 +313,7 @@ namespace ecaldqm
 
             if(!matchedIndex.size()) matchedIndex.push_back(0);
             for(std::vector<int>::iterator matchItr(matchedIndex.begin()); matchItr != matchedIndex.end(); ++matchItr){
-              meMatchedIndex.fill(ttid, *matchItr + 0.5);
+              meMatchedIndex.fill(getEcalDQMSetupObjects(), ttid, *matchItr + 0.5);
 
               // timing information is only within emulated TPs (real TPs have one time sample)
               //      if(HLTCaloBit_) MEs_[kTimingCalo].fill(ttid, float(*matchItr));
@@ -335,11 +328,10 @@ namespace ecaldqm
         matchFG = false;
       }
 
-      if(!match) meEtEmulError.fill(ttid);
-      if(!matchFG) meFGEmulError.fill(ttid);
+      if(!match) meEtEmulError.fill(getEcalDQMSetupObjects(), ttid);
+      if(!matchFG) meFGEmulError.fill(getEcalDQMSetupObjects(), ttid);
     }
   }
 
   DEFINE_ECALDQM_WORKER(TrigPrimTask);
 }
-

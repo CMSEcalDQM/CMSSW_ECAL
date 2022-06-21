@@ -120,9 +120,10 @@ namespace ecaldqm
 
     if(!set) throw cms::Exception("InvalidConfiguration") << "MESet " << path << " could not be initialized";
 
+    if (_MEParam.existsAs<bool>("perLumi", false)){
     if(_MEParam.getUntrackedParameter<bool>("perLumi"))
       set->setLumiFlag();
-
+    }
     return set;
   }
 

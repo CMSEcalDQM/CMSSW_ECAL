@@ -43,12 +43,12 @@ namespace ecaldqm
 
     for(unsigned iDCC(0); iDCC < nDCC; ++iDCC){
       int dccid(iDCC + 1);
-      meReportSummaryContents.fill(dccid, -1.);
+      meReportSummaryContents.fill(getEcalDQMSetupObjects(), dccid, -1.);
     }
 
-    meReportSummary.fill(-1.);
+    meReportSummary.fill(getEcalDQMSetupObjects(), -1.);
 
-    meReportSummaryMap.reset(-1.);
+    meReportSummaryMap.reset(GetElectronicsMap(), -1.);
   }
 
   void
@@ -60,9 +60,9 @@ namespace ecaldqm
 
     for(unsigned iDCC(0); iDCC < nDCC; ++iDCC){
       int dccid(iDCC + 1);
-      meReportSummaryContents.fill(dccid, -1.);
+      meReportSummaryContents.fill(getEcalDQMSetupObjects(), dccid, -1.);
     }
-    meReportSummary.fill(-1.);
+    meReportSummary.fill(getEcalDQMSetupObjects(), -1.);
 
     MESet const& sIntegrityByLumi(sources_.at("IntegrityByLumi"));
     MESet const& sDesyncByLumi(sources_.at("DesyncByLumi"));
@@ -71,8 +71,9 @@ namespace ecaldqm
     double integrityByLumi[nDCC];
     double rawDataByLumi[nDCC];
     for(unsigned iDCC(0); iDCC < nDCC; ++iDCC){
-      integrityByLumi[iDCC] = sIntegrityByLumi.getBinContent(iDCC + 1);
-      rawDataByLumi[iDCC] = sDesyncByLumi.getBinContent(iDCC + 1) + sFEByLumi.getBinContent(iDCC + 1);
+      integrityByLumi[iDCC] = sIntegrityByLumi.getBinContent(getEcalDQMSetupObjects(), iDCC + 1);
+      rawDataByLumi[iDCC] = sDesyncByLumi.getBinContent(getEcalDQMSetupObjects(), iDCC + 1) +
+                            sFEByLumi.getBinContent(getEcalDQMSetupObjects(), iDCC + 1);
     }
 
     MESet& meQualitySummary(MEs_.at("QualitySummary"));
@@ -95,25 +96,26 @@ namespace ecaldqm
 
     std::map<uint32_t, int> badChannelsCount;
 
-    MESet::iterator qEnd(meQualitySummary.end());
-    for(MESet::iterator qItr(meQualitySummary.beginChannel()); qItr != qEnd; qItr.toNextChannel()){
+    MESet::iterator qEnd(meQualitySummary.end(GetElectronicsMap()));
+    for(MESet::iterator qItr(meQualitySummary.beginChannel(GetElectronicsMap())); qItr != qEnd; qItr.toNextChannel(GetElectronicsMap())){
 
       DetId id(qItr->getId());
-      unsigned iDCC(dccId(id) - 1);
+      unsigned iDCC(dccId(id, GetElectronicsMap()) - 1);
 
-      int integrity(sIntegrity ? sIntegrity->getBinContent(id) : kUnknown);
+      int integrity(sIntegrity ? (int)sIntegrity->getBinContent(getEcalDQMSetupObjects(), id) : kUnknown);
 
       if(integrity == kUnknown || integrity == kMUnknown){
         qItr->setBinContent(integrity);
         if ( onlineMode_ ) continue;
       }
 
-      int presample(sPresample ? sPresample->getBinContent(id) : kUnknown);
-      int hotcell(sHotCell ? sHotCell->getBinContent(id) : kUnknown);
-      int timing(sTiming ? sTiming->getBinContent(id) : kUnknown);
-      int trigprim(sTriggerPrimitives ? sTriggerPrimitives->getBinContent(id) : kUnknown);
+      int presample(sPresample ? (int)sPresample->getBinContent(getEcalDQMSetupObjects(), id) : kUnknown);
+      int hotcell(sHotCell ? (int)sHotCell->getBinContent(getEcalDQMSetupObjects(), id) : kUnknown);
+      int timing(sTiming ? (int)sTiming->getBinContent(getEcalDQMSetupObjects(), id) : kUnknown);
+      int trigprim(sTriggerPrimitives ? (int)sTriggerPrimitives->getBinContent(getEcalDQMSetupObjects(), id)
+                                      : kUnknown);
 
-      int rawdata(sRawData.getBinContent(id));
+      int rawdata(sRawData.getBinContent(getEcalDQMSetupObjects(), id));
 
       if(integrity == kBad && integrityByLumi[iDCC] == 0.) integrity = kGood;
       if(rawdata == kBad && rawDataByLumi[iDCC] == 0.) rawdata = kGood;
@@ -162,7 +164,7 @@ namespace ecaldqm
 
             if(badTowers > 2){
               for(unsigned iD(0); iD < 4; ++iD)
-                dccGood[dccId(ttids[iD]) - 1] = 0.;
+                dccGood[dccId(ttids[iD], GetElectronicsMap()) - 1] = 0.;
             }
           }
         }
@@ -191,7 +193,7 @@ namespace ecaldqm
               for(unsigned iD(0); iD < 4; ++iD){
                 EcalScDetId& scid(scids[iD]);
                 if(scid.null()) continue;
-                dccGood[dccId(scid) - 1] = 0.;
+                dccGood[dccId(scid, GetElectronicsMap()) - 1] = 0.;
               }
             }
           }
@@ -205,17 +207,17 @@ namespace ecaldqm
 
       int dccid(iDCC + 1);
       float frac(dccGood[iDCC] / dccChannels[iDCC]);
-      meReportSummaryMap.setBinContent(dccid, frac);
-      meReportSummaryContents.fill(dccid, frac);
+      meReportSummaryMap.setBinContent(getEcalDQMSetupObjects(), dccid, frac);
+      meReportSummaryContents.fill(getEcalDQMSetupObjects(), dccid, frac);
 
       if(1. - frac > fedBadFraction_) nBad += 1.;
     }
 
-    if(totalChannels > 0.) meReportSummary.fill(totalGood / totalChannels);
+    if(totalChannels > 0.) meReportSummary.fill(getEcalDQMSetupObjects(), totalGood / totalChannels);
 
     if(onlineMode_){
-      if(totalChannels > 0.) MEs_.at("GlobalSummary").setBinContent(1, totalGood / totalChannels);
-      MEs_.at("NBadFEDs").setBinContent(1, nBad);
+      if(totalChannels > 0.) MEs_.at("GlobalSummary").setBinContent(getEcalDQMSetupObjects(), 1, totalGood / totalChannels);
+      MEs_.at("NBadFEDs").setBinContent(getEcalDQMSetupObjects(), 1, nBad);
     }
   }
 

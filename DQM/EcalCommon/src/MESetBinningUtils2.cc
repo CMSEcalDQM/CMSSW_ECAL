@@ -195,9 +195,8 @@ namespace ecaldqm
       return specs;
     }
 
-    AxisSpecs
-    getBinningSM_(BinningType _btype, bool _isMap, unsigned _iObj, int _axis)
-    {
+    AxisSpecs getBinningSM_(
+         BinningType _btype, bool _isMap, unsigned _iObj, int _axis, const EcalElectronicsMapping *electronicsMap) {
       AxisSpecs specs;
 
       unsigned iSM(_iObj);
@@ -207,7 +206,7 @@ namespace ecaldqm
       if(!_isMap){
         switch(_btype){
         case kCrystal:
-          specs.nbins = isBarrel ? 1700 : getElectronicsMap()->dccConstituents(iSM + 1).size();
+          specs.nbins = isBarrel ? 1700 : electronicsMap->dccConstituents(iSM + 1).size();
           specs.low = 0.;
           specs.high = specs.nbins;
           specs.title = "crystal";
@@ -402,9 +401,10 @@ namespace ecaldqm
       return specs;
     }
 
-    int
-    findBinCrystal_(ObjectType _otype, const DetId& _id, int _iSM/* = -1*/)
-    {
+    int findBinCrystal_(const EcalElectronicsMapping *electronicsMap,
+                        ObjectType _otype,
+                        const DetId &_id,
+                        int _iSM /* = -1*/) {
       int xbin(0), ybin(0);
       int nbinsX(0);
       int subdet(_id.subdetId());
@@ -448,10 +448,10 @@ namespace ecaldqm
         case kSM:
         case kEESM:
           {
-            int iSM(_iSM >= 0 ? _iSM : dccId(_id) - 1);
+            int iSM(_iSM >= 0 ? _iSM : dccId(_id, electronicsMap) - 1);
             xbin = ix - xlow_(iSM);
             ybin = iy - ylow_(iSM);
-            if(iSM == kEEm02 || iSM == kEEm08 || iSM == kEEp02 || iSM == kEEp08) 
+            if(iSM == kEEm02 || iSM == kEEm08 || iSM == kEEp02 || iSM == kEEp08)
               nbinsX = nEESMXExt;
             else if(iSM == kEEm01 || iSM == kEEm05 || iSM == kEEm09 || iSM == kEEp01 || iSM == kEEp05 || iSM == kEEp09)
               nbinsX = nEESMXRed;
@@ -474,17 +474,17 @@ namespace ecaldqm
           nbinsX = 10;
           break;
         case kMEM:
-          xbin = memDCCIndex(dccId(_id)) + 1;
+          xbin = memDCCIndex(dccId(_id, electronicsMap)) + 1;
           ybin = pnid.iPnId();
           nbinsX = 44;
           break;
         case kEBMEM:
-          xbin = memDCCIndex(dccId(_id)) - 3;
+          xbin = memDCCIndex(dccId(_id, electronicsMap)) - 3;
           ybin = pnid.iPnId();
           nbinsX = 36;
           break;
         case kEEMEM:
-          xbin = memDCCIndex(dccId(_id)) + 1;
+          xbin = memDCCIndex(dccId(_id, electronicsMap)) + 1;
           if(xbin > kEEmHigh + 1) xbin -= 36;
           ybin = pnid.iPnId();
           nbinsX = 8;
@@ -497,10 +497,8 @@ namespace ecaldqm
       return (nbinsX + 2) * ybin + xbin;
     }
 
-    int
-    findBinCrystal_(ObjectType _otype, EcalElectronicsId const& _id)
-    {
-      return findBinCrystal_(_otype, getElectronicsMap()->getDetId(_id));
+    int findBinCrystal_(const EcalElectronicsMapping *electronicsMap, ObjectType _otype, EcalElectronicsId const &_id) {
+      return findBinCrystal_(electronicsMap, _otype, electronicsMap->getDetId(_id));
     }
 
     int
@@ -521,9 +519,7 @@ namespace ecaldqm
       return (nbinsX + 2) * ybin + xbin;
     }
 
-    int
-    findBinTriggerTower_(ObjectType _otype, DetId const& _id)
-    {
+    int findBinTriggerTower_(const EcalElectronicsMapping *electronicsMap, ObjectType _otype, DetId const &_id) {
       int xbin(0);
       int ybin(0);
       int nbinsX(0);
@@ -557,37 +553,36 @@ namespace ecaldqm
         }
       }
       else if(subdet == EcalEndcap){
-        unsigned tccid(tccId(_id));
+        unsigned tccid(tccId(_id, electronicsMap));
         unsigned iSM(tccid <= 36 ? tccid % 18 / 2 : (tccid - 72) % 18 / 2);
-        return findBinCrystal_(_otype, _id, iSM);
+        return findBinCrystal_(electronicsMap, _otype, _id, iSM);
       }
 
       return (nbinsX + 2) * ybin + xbin;
     }
 
-    int 
-    findBinPseudoStrip_(ObjectType _otype, DetId const& _id){
-    
+    int findBinPseudoStrip_(const EcalElectronicsMapping *electronicsMap, ObjectType _otype, DetId const &_id) {
       int xbin(0);
       int ybin(0);
       int nbinsX(0);
       int subdet(_id.subdetId());
 
       if((subdet == EcalTriggerTower && !isEndcapTTId(_id)) || subdet == EcalBarrel){
-        return findBinTriggerTower_(_otype, _id);
+        return findBinTriggerTower_(electronicsMap, _otype, _id);
       }
       else if(subdet == EcalEndcap){
-        unsigned tccid(tccId(_id));
+        unsigned tccid(tccId(_id, electronicsMap));
         unsigned iSM(tccid <= 36 ? tccid % 18 / 2 : (tccid - 72) % 18 / 2);
-        return findBinCrystal_(_otype, _id, iSM);
+        return findBinCrystal_(electronicsMap, _otype, _id, iSM);
       }
 
       return (nbinsX + 2) * ybin + xbin;
     }
 
-    int
-    findBinSuperCrystal_(ObjectType _otype, const DetId& _id, int _iSM/* -1*/)
-    {
+    int findBinSuperCrystal_(const EcalElectronicsMapping *electronicsMap,
+                             ObjectType _otype,
+                             const DetId &_id,
+                             int _iSM /* -1*/) {
       int xbin(0);
       int ybin(0);
       int nbinsX(0);
@@ -636,10 +631,10 @@ namespace ecaldqm
           case kSM:
           case kEESM:
             {
-              int iSM(_iSM >= 0 ? _iSM : dccId(_id) - 1);
+              int iSM(_iSM >= 0 ? _iSM : dccId(_id, electronicsMap) - 1);
               xbin = ix - xlow_(iSM) / 5;
               ybin = iy - ylow_(iSM) / 5;
-              if(iSM == kEEm02 || iSM == kEEm08 || iSM == kEEp02 || iSM == kEEp08) 
+              if(iSM == kEEm02 || iSM == kEEm08 || iSM == kEEp02 || iSM == kEEp08)
                 nbinsX = nEESMXExt / 5;
               else if(iSM == kEEm01 || iSM == kEEm05 || iSM == kEEm09 || iSM == kEEp01 || iSM == kEEp05 || iSM == kEEp09)
                 nbinsX = nEESMXRed / 5;
@@ -670,10 +665,10 @@ namespace ecaldqm
           case kSM:
           case kEESM:
             {
-              int iSM(_iSM >= 0 ? _iSM : dccId(_id) - 1);
+              int iSM(_iSM >= 0 ? _iSM : dccId(_id, electronicsMap) - 1);
               xbin = (ix - xlow_(iSM) - 1) / 5 + 1;
               ybin = (iy - ylow_(iSM) - 1) / 5 + 1;
-              if(iSM == kEEm02 || iSM == kEEm08 || iSM == kEEp02 || iSM == kEEp08) 
+              if(iSM == kEEm02 || iSM == kEEm08 || iSM == kEEp02 || iSM == kEEp08)
                 nbinsX = nEESMXExt / 5;
               else if(iSM == kEEm01 || iSM == kEEm05 || iSM == kEEm09 || iSM == kEEp01 || iSM == kEEp05 || iSM == kEEp09)
                 nbinsX = nEESMXRed / 5;
@@ -710,9 +705,9 @@ namespace ecaldqm
       return (nbinsX + 2) * ybin + xbin;
     }
 
-    int
-    findBinSuperCrystal_(ObjectType _otype, const EcalElectronicsId& _id)
-    {
+    int findBinSuperCrystal_(const EcalElectronicsMapping *electronicsMap,
+                             ObjectType _otype,
+                             const EcalElectronicsId &_id) {
       int xbin(0);
       int ybin(0);
       int nbinsX(0);
@@ -738,7 +733,7 @@ namespace ecaldqm
         }
       }
       else{
-        return findBinSuperCrystal_(_otype, EEDetId(getElectronicsMap()->getDetId(_id)).sc());
+        return findBinSuperCrystal_(electronicsMap, _otype, EEDetId(electronicsMap->getDetId(_id)).sc());
       }
 
       return (nbinsX + 2) * ybin + xbin;
